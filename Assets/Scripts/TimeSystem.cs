@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum TimePeriod
@@ -21,6 +19,10 @@ public class TimeSystem : MonoBehaviour
     public GameTime gameTime = new GameTime { day = 1, hours = 6f, currentPeriod = TimePeriod.MorningHome };
     public float timeSpeed = 1f; // 時間流逝速度
 
+    // 定義時間更新事件
+    public delegate void TimeUpdatedHandler(GameTime newTime);
+    public event TimeUpdatedHandler OnTimeUpdated;
+
     public void UpdateTime(float deltaTime)
     {
         gameTime.hours += deltaTime * timeSpeed;
@@ -31,6 +33,7 @@ public class TimeSystem : MonoBehaviour
             if (gameTime.day > 7) EndGame(); // 第7天結束
         }
         UpdateTimePeriod();
+        OnTimeUpdated?.Invoke(gameTime); // 觸發時間更新事件
     }
 
     public void AddEventTime(float eventHours)
@@ -43,12 +46,13 @@ public class TimeSystem : MonoBehaviour
             if (gameTime.day > 7) EndGame();
         }
         UpdateTimePeriod();
+        OnTimeUpdated?.Invoke(gameTime); // 觸發時間更新事件
     }
 
     private void UpdateTimePeriod()
     {
         bool isWeekend = gameTime.day >= 6;
-        bool goOut = true; // 假設玩家選擇出門，需根據玩家選擇動態設定
+        bool goOut = true; // 需根據玩家選擇動態設定
         if (isWeekend)
         {
             if (goOut)
@@ -74,13 +78,13 @@ public class TimeSystem : MonoBehaviour
             }
             else
             {
-                gameTime.currentPeriod = TimePeriod.MorningHome; // 整天在家
+                gameTime.currentPeriod = TimePeriod.MorningHome;
             }
         }
     }
 
     private void EndGame()
     {
-        // 觸發結局，檢查壓力值
+        // 觸發結局邏輯
     }
 }

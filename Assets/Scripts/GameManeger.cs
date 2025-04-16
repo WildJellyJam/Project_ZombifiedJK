@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -25,7 +27,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        // 初始化模組
         timeSystem = gameObject.AddComponent<TimeSystem>();
         saveSystem = gameObject.AddComponent<SaveSystem>();
         playerStats = new PlayerStats { sanity = 100f, socialEnergy = 100f, popularity = 0f, anxiety = 0f };
@@ -43,6 +44,17 @@ public class GameManager : MonoBehaviour
         sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
     }
 
+    // 修正類型為 TimeSystem.TimeUpdatedHandler
+    public void SubscribeToTimeUpdated(TimeSystem.TimeUpdatedHandler callback)
+    {
+        timeSystem.OnTimeUpdated += callback;
+    }
+
+    public void UnsubscribeFromTimeUpdated(TimeSystem.TimeUpdatedHandler callback)
+    {
+        timeSystem.OnTimeUpdated -= callback;
+    }
+
     public void StartNewGame()
     {
         gameWeek = 1;
@@ -58,8 +70,18 @@ public class GameManager : MonoBehaviour
             timeSystem.gameTime = data.gameTime;
             playerStats = data.playerStats;
             inventory = data.inventory;
-            randomEventManager = new RandomEventManager(); // 重新初始化
+            randomEventManager = new RandomEventManager();
             sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
         }
+    }
+
+    private void ResetForNewWeek()
+    {
+        timeSystem.gameTime = new GameTime { day = 1, hours = 6f, currentPeriod = TimePeriod.MorningHome };
+        playerStats.sanity = 100f;
+        playerStats.socialEnergy = 100f;
+        playerStats.popularity = 0f;
+        playerStats.anxiety = 0f;
+        randomEventManager = gameObject.AddComponent<RandomEventManager>();
     }
 }
