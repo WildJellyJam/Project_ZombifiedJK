@@ -4,15 +4,14 @@ using UnityEngine;
 
 public class SceneManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public void SwitchSceneBasedOnTime(TimePeriod period)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        string sceneName = period switch
+        {
+            TimePeriod.MorningHome => "MorningHomeScene",
+            TimePeriod.MorningSchool => "MorningSchoolScene",
+            _ => "MainScene"
+        };
+        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
     }
 }

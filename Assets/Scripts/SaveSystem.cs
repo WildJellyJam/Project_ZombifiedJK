@@ -3,7 +3,14 @@ using System.IO;
 using System.Collections.Generic;
 
 [System.Serializable]
-
+    public class SaveData
+{
+    public GameTime gameTime; // 時間
+    public PlayerStats playerStats; // 主角數值
+    public Inventory inventory; // 物品
+    public List<string> triggeredEvents; // 已觸發事件
+    public string timestamp; // 存檔時間戳
+}
 
 public class SaveSystem : MonoBehaviour
 {
@@ -30,14 +37,6 @@ public class SaveSystem : MonoBehaviour
         System.IO.File.WriteAllText($"SaveSlot{slotIndex}.json", json);
     }
 
-    public class SaveData
-{
-    public GameTime gameTime; // 時間
-    public PlayerStats playerStats; // 主角數值
-    public Inventory inventory; // 物品
-    public List<string> triggeredEvents; // 已觸發事件
-    public string timestamp; // 存檔時間戳
-}
 
     public SaveData LoadGame(int slotIndex)
     {
