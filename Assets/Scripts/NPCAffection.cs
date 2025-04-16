@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NPCAffection : MonoBehaviour
+[System.Serializable]
+public class NPCAffection
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public Dictionary<string, float> affection = new Dictionary<string, float>();
 
-    // Update is called once per frame
-    void Update()
+    public void UpdateAffection(string npcName, float delta)
     {
-        
+        if (!affection.ContainsKey(npcName)) affection[npcName] = 0f;
+        affection[npcName] += delta;
+        if (affection[npcName] < 0) affection[npcName] = 0;
     }
 }
