@@ -30,12 +30,17 @@ public class GameManager : MonoBehaviour
         timeSystem = gameObject.AddComponent<TimeSystem>();
         saveSystem = gameObject.AddComponent<SaveSystem>();
         playerStats = new PlayerStats { sanity = 100f, socialEnergy = 100f, popularity = 0f, anxiety = 0f };
-        npcAffection = new NPCAffection();
+        //npcAffection = new NPCAffection();
         randomEventManager = gameObject.AddComponent<RandomEventManager>();
         inventory = new Inventory();
         miniGameManager = gameObject.AddComponent<MiniGameManager>();
         sceneManager = gameObject.AddComponent<SceneManager>();
         playerMovement = FindObjectOfType<PlayerMovement>();
+
+        if (npcAffection == null)
+        {
+            npcAffection = new NPCAffection();
+        }
     }
 
     void Update()

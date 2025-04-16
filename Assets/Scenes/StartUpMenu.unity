@@ -276,7 +276,6 @@ GameObject:
   m_Component:
   - component: {fileID: 526919048}
   - component: {fileID: 526919047}
-  - component: {fileID: 526919049}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -296,21 +295,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0b03d7c9c33d34499893fcf6c244c4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stage: 0
-  maxStages: 5
-  gameTime: 6
-  timeSpeed: 0
-  timePerDay: 24
-  timeScenes:
-  - sceneName: Morning
-    startTime: 6
-  - sceneName: Noon
-    startTime: 12
-  - sceneName: Night
-    startTime: 18
-  StartBtn: {fileID: 2111346020}
-  EndBtn: {fileID: 0}
-  currentState: 0
+  timeSystem: {fileID: 0}
+  saveSystem: {fileID: 0}
+  playerStats:
+    sanity: 0
+    socialEnergy: 0
+    popularity: 0
+    anxiety: 0
+  randomEventManager: {fileID: 0}
+  inventory:
+    heldItems: []
+    collectedItems: []
+  miniGameManager: {fileID: 0}
+  sceneManager: {fileID: 0}
+  playerMovement: {fileID: 0}
+  gameWeek: 1
 --- !u!4 &526919048
 Transform:
   m_ObjectHideFlags: 0
@@ -326,18 +325,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &526919049
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 526919046}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c81ec2def83456468ad934002967051, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &757151801
 GameObject:
   m_ObjectHideFlags: 0
