@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     public SceneManager sceneManager;
     public PlayerMovement playerMovement;
     public int gameWeek = 1;
+    public CameraManager cameraManager;
 
     void Awake()
     {
@@ -36,6 +37,11 @@ public class GameManager : MonoBehaviour
         miniGameManager = gameObject.AddComponent<MiniGameManager>();
         sceneManager = gameObject.AddComponent<SceneManager>();
         playerMovement = FindObjectOfType<PlayerMovement>();
+        cameraManager = FindObjectOfType<CameraManager>();
+        if (cameraManager == null)
+        {
+            Debug.LogError("未找到CameraManager，請確保場景中有CameraManager物件！");
+        }
 
         if (npcAffection == null)
         {
@@ -88,5 +94,10 @@ public class GameManager : MonoBehaviour
         playerStats.popularity = 0f;
         playerStats.anxiety = 0f;
         randomEventManager = gameObject.AddComponent<RandomEventManager>();
+    }
+    public void OnSceneLoaded()
+    {
+        cameraManager = FindObjectOfType<CameraManager>();
+        cameraManager.SwitchCamera(0); // 默認切換到前方視角
     }
 }
