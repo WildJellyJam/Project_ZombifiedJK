@@ -11,23 +11,15 @@ public class AffectionEntry
 [System.Serializable]
 public class NPCAffection
 {
-    public List<AffectionEntry> affection = new List<AffectionEntry>();
+    public Dictionary<string, float> affection = new Dictionary<string, float>();
 
     public void UpdateAffection(string npcName, float delta)
     {
-        AffectionEntry entry = affection.Find(e => e.npcName == npcName);
-        if (entry == null)
+        if (!affection.ContainsKey(npcName)) // 使用 ContainsKey 替代 Find
         {
-            entry = new AffectionEntry { npcName = npcName, value = 0f };
-            affection.Add(entry);
+            affection[npcName] = 0f;
         }
-        entry.value += delta;
-        if (entry.value < 0) entry.value = 0;
-    }
-
-    public float GetAffection(string npcName)
-    {
-        AffectionEntry entry = affection.Find(e => e.npcName == npcName);
-        return entry != null ? entry.value : 0f;
+        affection[npcName] += delta;
+        if (affection[npcName] < 0) affection[npcName] = 0;
     }
 }

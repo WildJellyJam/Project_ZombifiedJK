@@ -10,6 +10,9 @@ public class SceneManager : MonoBehaviour
         {
             TimePeriod.MorningHome => "MorningHomeScene",
             TimePeriod.MorningSchool => "MorningSchoolScene",
+            
+            //TimePeriod.MorningSchool => "MorningSchoolScene",
+             //TimePeriod.StartMenu => "StartUpMenu",
             _ => "MainScene"
         };
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
