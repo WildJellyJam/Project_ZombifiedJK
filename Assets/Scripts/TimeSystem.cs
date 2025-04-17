@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public enum TimePeriod
 {
@@ -17,11 +18,8 @@ public class GameTime
 public class TimeSystem : MonoBehaviour
 {
     public GameTime gameTime = new GameTime { day = 1, hours = 6f, currentPeriod = TimePeriod.MorningHome };
-    public float timeSpeed = 1f; // 時間流逝速度
-
-    // 定義時間更新事件
-    public delegate void TimeUpdatedHandler(GameTime newTime);
-    public event TimeUpdatedHandler OnTimeUpdated;
+    public float timeSpeed = 1f;
+    public event Action<GameTime> OnTimeUpdated;
 
     public void UpdateTime(float deltaTime)
     {
@@ -30,10 +28,10 @@ public class TimeSystem : MonoBehaviour
         {
             gameTime.hours -= 24f;
             gameTime.day++;
-            if (gameTime.day > 7) EndGame(); // 第7天結束
+            if (gameTime.day > 7) EndGame();
         }
         UpdateTimePeriod();
-        OnTimeUpdated?.Invoke(gameTime); // 觸發時間更新事件
+        OnTimeUpdated?.Invoke(gameTime);
     }
 
     public void AddEventTime(float eventHours)
@@ -46,13 +44,13 @@ public class TimeSystem : MonoBehaviour
             if (gameTime.day > 7) EndGame();
         }
         UpdateTimePeriod();
-        OnTimeUpdated?.Invoke(gameTime); // 觸發時間更新事件
+        OnTimeUpdated?.Invoke(gameTime);
     }
 
     private void UpdateTimePeriod()
     {
         bool isWeekend = gameTime.day >= 6;
-        bool goOut = true; // 需根據玩家選擇動態設定
+        bool goOut = true;
         if (isWeekend)
         {
             if (goOut)
@@ -85,6 +83,6 @@ public class TimeSystem : MonoBehaviour
 
     private void EndGame()
     {
-        // 觸發結局邏輯
+        GameManager.Instance.EndGameWeek();
     }
 }

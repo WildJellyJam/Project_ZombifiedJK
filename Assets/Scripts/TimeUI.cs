@@ -1,39 +1,45 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class TimeUI : MonoBehaviour
 {
-    public Text timeText; // UI Text 組件，用於顯示時間
+    public TextMeshProUGUI timeText; // 用於顯示時間的TextMeshProUGUI
+    private GameManager gameManager;
 
     void Start()
     {
-        // 訂閱時間更新事件，使用 TimeSystem.TimeUpdatedHandler
-        if (GameManager.Instance != null)
+        // 獲取GameManager
+        gameManager = GameManager.Instance;
+        if (gameManager == null)
         {
-            GameManager.Instance.SubscribeToTimeUpdated(OnTimeUpdated);
-            UpdateTimeDisplay(GameManager.Instance.timeSystem.gameTime); // 初始顯示
+            Debug.LogError("未找到GameManager，請確保場景中有GameManager物件！");
+            return;
         }
+
+        // 訂閱時間更新事件
+        gameManager.SubscribeToTimeUpdated(UpdateTimeDisplay);
+
+        // 初始顯示當前時間
+        UpdateTimeDisplay(gameManager.timeSystem.gameTime);
     }
 
     void OnDestroy()
     {
-        // 取消訂閱
-        if (GameManager.Instance != null)
+        // 取消訂閱，防止記憶體洩漏
+        if (gameManager != null)
         {
-            GameManager.Instance.UnsubscribeFromTimeUpdated(OnTimeUpdated);
+            gameManager.UnsubscribeFromTimeUpdated(UpdateTimeDisplay);
         }
     }
 
-    private void OnTimeUpdated(GameTime newTime)
-    {
-        UpdateTimeDisplay(newTime);
-    }
-
-    private void UpdateTimeDisplay(GameTime time)
+    // 更新時間顯示
+    private void UpdateTimeDisplay(GameTime gameTime)
     {
         if (timeText != null)
         {
-            timeText.text = $"第 {time.day} 天, {time.hours:F1} 點\n時間段: {time.currentPeriod}";
+            int hour = Mathf.FloorToInt(gameTime.hours);
+            int minute = Mathf.FloorToInt((gameTime.hours - hour) * 60);
+            timeText.text = $"Day {gameTime.day}, {hour:00}:{minute:00} ({gameTime.currentPeriod})";
         }
     }
 }

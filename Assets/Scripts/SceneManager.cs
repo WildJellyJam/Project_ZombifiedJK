@@ -8,8 +8,9 @@ public class SceneManager : MonoBehaviour
     {
         string sceneName = period switch
         {
-            TimePeriod.MorningHome => "MorningHomeScene",
             TimePeriod.MorningSchool => "MorningSchoolScene",
+            TimePeriod.MorningHome => "MorningHomeScene",
+            //TimePeriod.MorningSchool => "MorningSchoolScene",
             _ => "MainScene"
         };
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
