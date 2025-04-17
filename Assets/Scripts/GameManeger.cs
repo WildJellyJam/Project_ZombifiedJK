@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public int gameWeek = 1;
 
     private UIManager uiManager;
+    private bool isGameStarted = false;
 
     void Awake()
     {
@@ -50,12 +51,15 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        timeSystem.UpdateTime(Time.deltaTime);
-        sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
-
-        if (playerStats.anxiety > 120)
+        if (isGameStarted) // 只有遊戲開始後才更新時間和場景
         {
-            uiManager.ShowEnding("Bad");
+            timeSystem.UpdateTime(Time.deltaTime);
+            sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
+
+            if (playerStats.anxiety > 120)
+            {
+                uiManager.ShowEnding("Bad");
+            }
         }
     }
 
@@ -75,8 +79,12 @@ public class GameManager : MonoBehaviour
     {
         gameWeek = 1;
         ResetForNewWeek();
+        isGameStarted = true;
         sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
-        cameraManager.SwitchCamera(0);
+        if (cameraManager != null)
+        {
+            cameraManager.SwitchCamera(0); // 默認前方視角
+        }
     }
 
     public void LoadGame(int slotIndex)
@@ -90,7 +98,9 @@ public class GameManager : MonoBehaviour
             randomEventManager = new RandomEventManager();
             sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
             cameraManager.SwitchCamera(0);
+            isGameStarted = true;
         }
+        
     }
 
     public void TriggerChoiceEvent(string[] choices)
@@ -139,4 +149,5 @@ public class GameManager : MonoBehaviour
         playerStats.anxiety = 0f;
         randomEventManager = gameObject.AddComponent<RandomEventManager>();
     }
+
 }

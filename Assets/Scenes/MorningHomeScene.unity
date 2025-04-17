@@ -1133,7 +1133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f8850414e529dd4e80cc22be34fba1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveSpeed: 50
 --- !u!143 &1464730448
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1945,7 +1945,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4057df91da48ee249bbde26f1796a298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeText: {fileID: 0}
+  timeText: {fileID: 1662808771}
 --- !u!1 &1765117228
 GameObject:
   m_ObjectHideFlags: 0

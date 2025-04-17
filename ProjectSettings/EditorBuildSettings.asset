@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/StartUpMenu.unity
     guid: 21107a3ba81e3624aa65ec39b21c40f2
   - enabled: 1
-    path: Assets/Scenes/Morning.unity
+    path: Assets/Scenes/MorningHomeScene.unity
     guid: f7ed5793ba499de449b95c1bbeff99d2
   - enabled: 1
     path: Assets/Scenes/Noon.unity
