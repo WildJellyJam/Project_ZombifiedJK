@@ -8,13 +8,28 @@ public class SceneManager : MonoBehaviour
     {
         string sceneName = period switch
         {
-            TimePeriod.MorningHome => "MorningHomeScene",
-            TimePeriod.MorningSchool => "MorningSchoolScene",
             
             //TimePeriod.MorningSchool => "MorningSchoolScene",
-             //TimePeriod.StartMenu => "StartUpMenu",
-            _ => "MainScene"
+            
+            //TimePeriod.MorningSchool => "MorningSchoolScene",
+             //TimePeriod.MorningSchool => "MorningHomeScene",
+             TimePeriod.MorningHome => "MorningHomeScene",
+            _ => "MorningHomeScene"
         };
-        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+        //UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != sceneName)
+        {
+            StartCoroutine(LoadSceneAsync(sceneName));
+        }
+        
+    }
+    private IEnumerator LoadSceneAsync(string sceneName)
+    {
+        AsyncOperation asyncLoad = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
+        while (!asyncLoad.isDone)
+        {
+            Debug.Log($"Loading progress: {asyncLoad.progress}");
+            yield return null;
+        }
     }
 }
