@@ -28,6 +28,14 @@ public class UIManager : MonoBehaviour
     public GameObject choicePanel;
     public Button[] choiceButtons;
 
+    [Header("隨機事件UI")]
+    public GameObject randomEventPanel;
+    public Button eventButton;
+
+    [Header("過場動畫")]
+    public GameObject sleepTransitionPanel; // 睡覺過場面板
+    public Image transitionImage; // 淡入淡出圖片
+
     // 結局UI
     [Header("結局UI")]
     public GameObject endingPanel;
@@ -83,8 +91,12 @@ public class UIManager : MonoBehaviour
         if (choicePanel != null) choicePanel.SetActive(false);
         if (endingPanel != null) endingPanel.SetActive(false);
 
+        sleepTransitionPanel.SetActive(false);
+
         // 場景載入時重新查找UI元素
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        randomEventPanel.SetActive(false);
+        eventButton.onClick.AddListener(OnEventCompleted);
     }
 
     void OnDestroy()
@@ -248,5 +260,48 @@ public class UIManager : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         if (endingPanel != null) endingPanel.SetActive(false);
         if (statsPanel != null) statsPanel.SetActive(false);
+    }
+    public void ShowSleepTransition()
+    {
+        StartCoroutine(SleepTransitionCoroutine());
+    }
+    private System.Collections.IEnumerator SleepTransitionCoroutine()
+    {
+        sleepTransitionPanel.SetActive(true);
+        transitionImage.color = new Color(0, 0, 0, 0); // 初始透明
+
+        // 淡入（變黑）
+        float elapsed = 0f;
+        while (elapsed < 1f)
+        {
+            elapsed += Time.deltaTime;
+            transitionImage.color = new Color(0, 0, 0, elapsed);
+            yield return null;
+        }
+
+        // 顯示睡覺文字（可選）
+        yield return new WaitForSeconds(1f);
+
+        // 淡出（變透明）
+        elapsed = 0f;
+        while (elapsed < 1f)
+        {
+            elapsed += Time.deltaTime;
+            transitionImage.color = new Color(0, 0, 0, 1f - elapsed);
+            yield return null;
+        }
+
+        sleepTransitionPanel.SetActive(false);
+    }
+    public void ShowRandomEventOptions()
+    {
+        randomEventPanel.SetActive(true);
+        // 假設顯示一個簡單的事件按鈕，實際遊戲中可以顯示具體事件描述
+        eventButton.GetComponentInChildren<TextMeshProUGUI>().text = "完成事件";
+    }
+    private void OnEventCompleted()
+    {
+        randomEventPanel.SetActive(false);
+        GameManager.Instance.randomEventManager.TriggerRandomEvent(GameManager.Instance.playerStats);
     }
 }

@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (isGameStarted) // 只有遊戲開始後才更新時間和場景
+        /*if (isGameStarted) // 只有遊戲開始後才更新時間和場景
         {
             timeSystem.UpdateTime(Time.deltaTime);
             sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
@@ -60,20 +60,9 @@ public class GameManager : MonoBehaviour
             {
                 uiManager.ShowEnding("Bad");
             }
-        }
+        }*/
     }
 
-    // 新增：訂閱時間更新事件
-    public void SubscribeToTimeUpdated(System.Action<GameTime> callback)
-    {
-        timeSystem.OnTimeUpdated += callback;
-    }
-
-    // 新增：取消訂閱時間更新事件（可選，防止記憶體洩漏）
-    public void UnsubscribeFromTimeUpdated(System.Action<GameTime> callback)
-    {
-        timeSystem.OnTimeUpdated -= callback;
-    }
 
     public void StartNewGame()
     {
@@ -85,6 +74,7 @@ public class GameManager : MonoBehaviour
         {
             cameraManager.SwitchCamera(0); // 默認前方視角
         }
+        TriggerNextEvent();
     }
 
     public void LoadGame(int slotIndex)
@@ -100,7 +90,17 @@ public class GameManager : MonoBehaviour
             cameraManager.SwitchCamera(0);
             isGameStarted = true;
         }
-        
+        TriggerNextEvent();
+    }
+
+    public void OnTimeManuallyUpdated()
+    {
+        sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
+
+        if (playerStats.anxiety > 120)
+        {
+            uiManager.ShowEnding("Bad");
+        }
     }
 
     public void TriggerChoiceEvent(string[] choices)
@@ -119,6 +119,11 @@ public class GameManager : MonoBehaviour
             }
             timeSystem.AddEventTime(0.5f);
         });
+    }
+    public void TriggerNextEvent()
+    {
+        // 假設由UI觸發，這裡直接調用隨機事件
+        uiManager.ShowRandomEventOptions();
     }
 
     public void EndGameWeek()
@@ -142,7 +147,7 @@ public class GameManager : MonoBehaviour
 
     private void ResetForNewWeek()
     {
-        timeSystem.gameTime = new GameTime { day = 1, hours = 6f, currentPeriod = TimePeriod.MorningHome };
+        timeSystem.gameTime = new GameTime { day = 1, hours = 16f, currentPeriod = TimePeriod.AtHomeBeforeSleep };
         playerStats.sanity = 100f;
         playerStats.socialEnergy = 100f;
         playerStats.popularity = 0f;
