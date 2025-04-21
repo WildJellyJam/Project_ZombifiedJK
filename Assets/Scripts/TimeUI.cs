@@ -16,9 +16,6 @@ public class TimeUI : MonoBehaviour
             return;
         }
 
-        // 訂閱時間更新事件
-        gameManager.SubscribeToTimeUpdated(UpdateTimeDisplay);
-
         // 初始顯示當前時間
         UpdateTimeDisplay(gameManager.timeSystem.gameTime);
     }
@@ -28,7 +25,7 @@ public class TimeUI : MonoBehaviour
         // 取消訂閱，防止記憶體洩漏
         if (gameManager != null)
         {
-            gameManager.UnsubscribeFromTimeUpdated(UpdateTimeDisplay);
+            //gameManager.UnsubscribeFromTimeUpdated(UpdateTimeDisplay);
         }
     }
 
