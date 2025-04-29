@@ -1,11 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
+
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
+    [Header("主頁面按鈕容器")]
+    public GameObject mainMenuButtonsContainer;
     // 主頁面UI元素
     [Header("主頁面UI")]
     public Button continueButton;
@@ -13,10 +17,11 @@ public class UIManager : MonoBehaviour
     public Button exitButton;
     public GameObject saveListPanel;
     public Button[] saveSlotButtons;
+    public Button backToMenuButtons;
 
     // 遊戲內UI元素
     [Header("遊戲內UI")]
-    public GameObject statsPanel;     // 數值顯示面板
+    public GameObject statsPanel;
     public Slider sanitySlider;
     public Slider socialEnergySlider;
     public Slider popularitySlider;
@@ -33,8 +38,14 @@ public class UIManager : MonoBehaviour
     public Button eventButton;
 
     [Header("過場動畫")]
-    public GameObject sleepTransitionPanel; // 睡覺過場面板
-    public Image transitionImage; // 淡入淡出圖片
+    public GameObject sleepTransitionPanel;
+    public Image transitionImage;
+
+    [Header("暫停選單UI")]
+    public GameObject pausePanel;
+    public Button returnToMainMenuButton;
+
+    public bool isPaused = false;
 
     // 結局UI
     [Header("結局UI")]
@@ -60,17 +71,17 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("在start喔");
         gameManager = GameManager.Instance;
         if (gameManager == null)
         {
             Debug.LogError("未找到GameManager，請確保場景中有GameManager物件！");
         }
 
-        // 綁定按鈕事件
-        if (continueButton != null) continueButton.onClick.AddListener(OnContinueButtonClicked);
-        if (newGameButton != null) newGameButton.onClick.AddListener(OnNewGameButtonClicked);
-        if (exitButton != null) exitButton.onClick.AddListener(OnExitButtonClicked);
+        // 初始化主頁面按鈕（初始場景）
+        InitializeMainMenuButtons();
 
+        // 初始化其他 UI
         for (int i = 0; i < saveSlotButtons.Length; i++)
         {
             int slotIndex = i;
@@ -78,72 +89,201 @@ public class UIManager : MonoBehaviour
                 saveSlotButtons[i].onClick.AddListener(() => OnSaveSlotClicked(slotIndex));
         }
 
-        if (replayButton != null) 
+        if (replayButton != null)
             replayButton.onClick.AddListener(OnReplayButtonClicked);
 
-        if (returnToMenuButton != null) 
+        if (returnToMenuButton != null)
             returnToMenuButton.onClick.AddListener(OnReturnToMenuButtonClicked);
 
+        if (backToMenuButtons != null)
+            backToMenuButtons.onClick.AddListener(BackToMenuButtonPressed);
 
-        // 初始化UI
         if (saveListPanel != null) saveListPanel.SetActive(false);
         if (statsPanel != null) statsPanel.SetActive(false);
         if (choicePanel != null) choicePanel.SetActive(false);
         if (endingPanel != null) endingPanel.SetActive(false);
+        if (pausePanel != null)
+        {
+            
+            if (returnToMainMenuButton != null)
+            {
+                returnToMainMenuButton.onClick.AddListener(ReturnToMainMenu);
+            }
+            pausePanel.SetActive(false);
+        }
+        else
+        {
+            Debug.LogError("未設置PausePanel，請在Unity編輯器中分配！");
+        }
 
         sleepTransitionPanel.SetActive(false);
-
-        // 場景載入時重新查找UI元素
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
         randomEventPanel.SetActive(false);
-        eventButton.onClick.AddListener(OnEventCompleted);
+        if (eventButton != null)
+            eventButton.onClick.AddListener(OnEventCompleted);
+
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     void OnDestroy()
     {
-        // 移除場景載入事件，避免內存洩漏
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // 場景載入時重新查找UI元素
-    private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    // 初始化主頁面按鈕
+    private void InitializeMainMenuButtons()
     {
-        // 重新查找statsPanel
-        statsPanel = GameObject.Find("StatsPanel");
-        if (statsPanel == null)
+        Debug.Log("在初始化按鈕喔");
+        if (mainMenuButtonsContainer == null)
         {
-            Debug.LogWarning("未找到StatsPanel，請確保場景中存在該GameObject！");
+            Debug.LogError("MainMenuButtonsContainer 未設置，請在 Unity 編輯器中分配！");
+            return;
+        }
+        /*continueButton = GameObject.Find("continueBtn")?.GetComponent<Button>();
+        newGameButton = GameObject.Find("startBtn")?.GetComponent<Button>();
+        exitButton = GameObject.Find("endBtn")?.GetComponent<Button>();
+        backToMenuButtons = GameObject.Find("backBtn")?.GetComponent<Button>();
+        saveListPanel = GameObject.Find("savePanel");*/
+        if (backToMenuButtons != null)
+        {
+            backToMenuButtons.onClick.RemoveAllListeners();
+            backToMenuButtons.onClick.AddListener(BackToMenuButtonPressed);
+            Debug.Log("返回主頁面按鈕已綁定");
         }
         else
         {
-            // 重新獲取子物件
-            sanitySlider = statsPanel.transform.Find("SanitySlider")?.GetComponent<Slider>();
-            socialEnergySlider = statsPanel.transform.Find("SocialEnergySlider")?.GetComponent<Slider>();
-            popularitySlider = statsPanel.transform.Find("PopularitySlider")?.GetComponent<Slider>();
-            anxietySlider = statsPanel.transform.Find("AnxietySlider")?.GetComponent<Slider>();
-            affectionText = statsPanel.transform.Find("AffectionText")?.GetComponent<TextMeshProUGUI>();
+            Debug.LogError("continueButton 未找到，請檢查 MainMenuButtonsContainer 中是否存在 'continueBtn'！");
         }
 
-        // 重新查找其他UI元素（如果需要）
-        saveListPanel = GameObject.Find("SaveListPanel");
-        continueButton = GameObject.Find("ContinueButton")?.GetComponent<Button>();
-        newGameButton = GameObject.Find("NewGameButton")?.GetComponent<Button>();
-        exitButton = GameObject.Find("ExitButton")?.GetComponent<Button>();
-        choicePanel = GameObject.Find("ChoicePanel");
-        endingPanel = GameObject.Find("EndingPanel");
 
-        // 重新初始化按鈕事件（如果找到按鈕）
-        if (continueButton != null) continueButton.onClick.AddListener(OnContinueButtonClicked);
-        if (newGameButton != null) newGameButton.onClick.AddListener(OnNewGameButtonClicked);
-        if (exitButton != null) exitButton.onClick.AddListener(OnExitButtonClicked);
+        if (continueButton != null)
+        {
+            continueButton.gameObject.SetActive(true);
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinueButtonClicked);
+            Debug.Log("繼續遊戲按鈕已綁定");
+        }
+        else
+        {
+            Debug.LogError("continueButton 未找到，請檢查 MainMenuButtonsContainer 中是否存在 'continueBtn'！");
+        }
+
+        if (newGameButton != null)
+        {
+            continueButton.gameObject.SetActive(true);
+            newGameButton.onClick.RemoveAllListeners();
+            newGameButton.onClick.AddListener(OnNewGameButtonClicked);
+            Debug.Log("開始新遊戲按鈕已綁定");
+        }
+        else
+        {
+            Debug.LogError("newGameButton 未找到，請檢查 MainMenuButtonsContainer 中是否存在 'startBtn'！");
+        }
+
+        if (exitButton != null)
+        {
+            exitButton.gameObject.SetActive(true);
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(OnExitButtonClicked);
+            Debug.Log("退出遊戲按鈕已綁定");
+        }
+        else
+        {
+            Debug.LogError("exitButton 未找到，請檢查 MainMenuButtonsContainer 中是否存在 'endBtn'！");
+        }
     }
 
+    // 場景載入時重新查找UI元素
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("111}");
+        // 延遲查找 UI 元素，確保場景完全載入
+        StartCoroutine(DelayedInitializeUI(scene));
+    }
+
+    private System.Collections.IEnumerator DelayedInitializeUI(Scene scene)
+    {
+        // 等待一幀，確保場景中的 UI 物件已生成
+        yield return null;
+
+        Debug.Log($"場景已載入：{scene.name}");
+
+        // 根據場景類型初始化 UI
+        if (scene.name == "StartUpMenu")
+        {
+            // 重新查找主頁面按鈕
+            InitializeMainMenuButtons();
+
+            // 檢查按鈕是否啟用
+            if (continueButton != null)
+                Debug.Log($"continueBtn 啟用狀態：{continueButton.gameObject.activeInHierarchy}");
+            if (newGameButton != null)
+                Debug.Log($"startBtn 啟用狀態：{newGameButton.gameObject.activeInHierarchy}");
+            if (exitButton != null)
+                Debug.Log($"endBtn 啟用狀態：{exitButton.gameObject.activeInHierarchy}");
+        }
+        else
+        {
+            // 遊戲場景：查找其他 UI 元素
+            statsPanel = GameObject.Find("StatsPanel");
+            if (statsPanel != null)
+            {
+                sanitySlider = statsPanel.transform.Find("SanitySlider")?.GetComponent<Slider>();
+                socialEnergySlider = statsPanel.transform.Find("SocialEnergySlider")?.GetComponent<Slider>();
+                popularitySlider = statsPanel.transform.Find("PopularitySlider")?.GetComponent<Slider>();
+                anxietySlider = statsPanel.transform.Find("AnxietySlider")?.GetComponent<Slider>();
+                affectionText = statsPanel.transform.Find("AffectionText")?.GetComponent<TextMeshProUGUI>();
+                Debug.Log("StatsPanel 已找到");
+            }
+            else
+            {
+                Debug.LogWarning("未找到StatsPanel，請確保場景中存在該GameObject！");
+            }
+
+            choicePanel = GameObject.Find("ChoicePanel");
+            endingPanel = GameObject.Find("EndPanel");
+        }
+    }
+    public void CheckTheListener()
+    {
+        continueButton.onClick.AddListener(OnContinueButtonClicked);
+        newGameButton.onClick.AddListener(OnNewGameButtonClicked);
+        exitButton.onClick.AddListener(OnExitButtonClicked);
+        backToMenuButtons.onClick.AddListener(BackToMenuButtonPressed);
+    }
     void Update()
     {
-        // 添加null檢查
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePausePanel();
+        }
+
         if (statsPanel != null && statsPanel.activeSelf)
         {
             UpdateStatsUI();
+        }
+    }
+
+    private void TogglePausePanel()
+    {
+        isPaused = !isPaused;
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(isPaused);
+            Debug.Log(isPaused ? "顯示暫停選單" : "隱藏暫停選單");
+        }
+    }
+
+    private void ReturnToMainMenu()
+    {
+        isPaused = false;
+        TogglePausePanel();
+        if (gameManager != null)
+        {
+            gameManager.ReturnToMainMenu_gm();
+        }
+        else
+        {
+            Debug.LogError("GameManager 未初始化，無法返回主頁面！");
         }
     }
 
@@ -159,6 +299,9 @@ public class UIManager : MonoBehaviour
     private void OnNewGameButtonClicked()
     {
         gameManager.StartNewGame();
+        exitButton.gameObject.SetActive(false);
+        continueButton.gameObject.SetActive(false);
+        newGameButton.gameObject.SetActive(false);
         if (statsPanel != null) statsPanel.SetActive(true);
     }
 
@@ -182,7 +325,7 @@ public class UIManager : MonoBehaviour
             if (saveSlotButtons[i] == null) continue;
             if (i < saveSlots.Count && saveSlots[i] != null)
             {
-                saveSlotButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = 
+                saveSlotButtons[i].GetComponentInChildren<TextMeshProUGUI>().text =
                     $"存檔 {i + 1}: {saveSlots[i].timestamp}, Day {saveSlots[i].gameTime.day}";
             }
             else
@@ -223,7 +366,7 @@ public class UIManager : MonoBehaviour
                 choiceButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = choices[i];
                 int choiceIndex = i;
                 choiceButtons[i].onClick.RemoveAllListeners();
-                choiceButtons[i].onClick.AddListener(() => 
+                choiceButtons[i].onClick.AddListener(() =>
                 {
                     onChoiceSelected(choiceIndex);
                     choicePanel.SetActive(false);
@@ -257,20 +400,21 @@ public class UIManager : MonoBehaviour
 
     private void OnReturnToMenuButtonClicked()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("StartUpMenu");
         if (endingPanel != null) endingPanel.SetActive(false);
         if (statsPanel != null) statsPanel.SetActive(false);
     }
+
     public void ShowSleepTransition()
     {
         StartCoroutine(SleepTransitionCoroutine());
     }
+
     private System.Collections.IEnumerator SleepTransitionCoroutine()
     {
         sleepTransitionPanel.SetActive(true);
-        transitionImage.color = new Color(0, 0, 0, 0); // 初始透明
+        transitionImage.color = new Color(0, 0, 0, 0);
 
-        // 淡入（變黑）
         float elapsed = 0f;
         while (elapsed < 1f)
         {
@@ -279,10 +423,8 @@ public class UIManager : MonoBehaviour
             yield return null;
         }
 
-        // 顯示睡覺文字（可選）
         yield return new WaitForSeconds(1f);
 
-        // 淡出（變透明）
         elapsed = 0f;
         while (elapsed < 1f)
         {
@@ -293,15 +435,20 @@ public class UIManager : MonoBehaviour
 
         sleepTransitionPanel.SetActive(false);
     }
+
     public void ShowRandomEventOptions()
     {
         randomEventPanel.SetActive(true);
-        // 假設顯示一個簡單的事件按鈕，實際遊戲中可以顯示具體事件描述
-        eventButton.GetComponentInChildren<TextMeshProUGUI>().text = "完成事件";
     }
+
     private void OnEventCompleted()
     {
         randomEventPanel.SetActive(false);
         GameManager.Instance.randomEventManager.TriggerRandomEvent(GameManager.Instance.playerStats);
+    }
+
+    public void BackToMenuButtonPressed()
+    {
+        saveListPanel.SetActive(false);
     }
 }

@@ -64,4 +64,11 @@ public class SceneManager : MonoBehaviour
 
         isLoading = false; // 加載完成，重置標記
     }
+    public void LoadScene(string sceneName)
+    {
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != sceneName && !isLoading)
+        {
+            StartCoroutine(LoadSceneAsync(sceneName));
+        }
+    }
 }
