@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController controller;
-    public float moveSpeed = 5f; // 移動速度
+    public float moveSpeed = 10f; // 移動速度
 
     void Start()
     {
@@ -17,34 +17,23 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        float moveX = Input.GetAxisRaw("Horizontal");
-        float moveZ = Input.GetAxisRaw("Vertical");
+        // 獲取WASD輸入
+        float moveX = Input.GetAxisRaw("Horizontal"); // A/D鍵：左/右
+        float moveZ = Input.GetAxisRaw("Vertical");   // W/S鍵：前/後
+
+        // 計算移動方向（基於世界空間）
         Vector3 moveDirection = new Vector3(moveX, 0, moveZ).normalized;
 
+        // 如果有移動輸入，移動角色並調整朝向
         if (moveDirection.magnitude > 0)
         {
-            CameraManager cameraManager = FindObjectOfType<CameraManager>();
-            moveDirection = cameraManager.GetAdjustedMoveDirection(moveDirection);
             controller.Move(moveDirection * moveSpeed * Time.deltaTime);
 
-            // 根據攝影機方向設置角色朝向
-            switch (cameraManager.currentDirection)
-            {
-                case CameraManager.ViewDirection.Front:
-                    transform.rotation = Quaternion.LookRotation(Vector3.forward);
-                    break;
-                case CameraManager.ViewDirection.Back:
-                    transform.rotation = Quaternion.LookRotation(Vector3.back);
-                    break;
-                case CameraManager.ViewDirection.Left:
-                    transform.rotation = Quaternion.LookRotation(Vector3.left);
-                    break;
-                case CameraManager.ViewDirection.Right:
-                    transform.rotation = Quaternion.LookRotation(Vector3.right);
-                    break;
-            }
+            // 讓角色朝向移動方向
+            transform.LookAt(transform.position + moveDirection);
         }
 
+        // 簡單的重力處理，確保角色不會浮空
         if (!controller.isGrounded)
         {
             controller.Move(Vector3.down * 5f * Time.deltaTime);
