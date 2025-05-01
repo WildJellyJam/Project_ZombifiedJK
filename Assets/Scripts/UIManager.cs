@@ -58,15 +58,19 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        // if (Instance == null)
+        // {
+        //     Instance = this;
+        //     DontDestroyOnLoad(gameObject);
+        // }
+        // else
+        // {
+        //     Destroy(gameObject);
+        // }
+        Debug.Log("awake scene");
+        InitializeMainMenuButtons();
+        CheckTheListener();
+        // gameManager.StartNewGame();
     }
 
     void Start()
@@ -122,7 +126,9 @@ public class UIManager : MonoBehaviour
             eventButton.onClick.AddListener(OnEventCompleted);
 
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+
     }
+
 
     void OnDestroy()
     {
@@ -133,11 +139,11 @@ public class UIManager : MonoBehaviour
     private void InitializeMainMenuButtons()
     {
         Debug.Log("在初始化按鈕喔");
-        if (mainMenuButtonsContainer == null)
-        {
-            Debug.LogError("MainMenuButtonsContainer 未設置，請在 Unity 編輯器中分配！");
-            return;
-        }
+        // if (mainMenuButtonsContainer == null)
+        // {
+        //     Debug.LogError("MainMenuButtonsContainer 未設置，請在 Unity 編輯器中分配！");
+        //     return;
+        // }
         /*continueButton = GameObject.Find("continueBtn")?.GetComponent<Button>();
         newGameButton = GameObject.Find("startBtn")?.GetComponent<Button>();
         exitButton = GameObject.Find("endBtn")?.GetComponent<Button>();
@@ -245,10 +251,19 @@ public class UIManager : MonoBehaviour
     }
     public void CheckTheListener()
     {
+        Debug.Log("into CheckTheListtener function");
+        continueButton.onClick.RemoveAllListeners();
+        newGameButton.onClick.RemoveAllListeners();
+        exitButton.onClick.RemoveAllListeners();
+        backToMenuButtons.onClick.RemoveAllListeners();
         continueButton.onClick.AddListener(OnContinueButtonClicked);
         newGameButton.onClick.AddListener(OnNewGameButtonClicked);
         exitButton.onClick.AddListener(OnExitButtonClicked);
         backToMenuButtons.onClick.AddListener(BackToMenuButtonPressed);
+    }
+    public void RefreshMainMenuButtons()
+    {
+        InitializeMainMenuButtons();
     }
     void Update()
     {
@@ -296,8 +311,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void OnNewGameButtonClicked()
+    public void OnNewGameButtonClicked()
     {
+        Debug.Log("new game button be click");
         gameManager.StartNewGame();
         exitButton.gameObject.SetActive(false);
         continueButton.gameObject.SetActive(false);

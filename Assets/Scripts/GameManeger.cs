@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -42,11 +43,11 @@ public class GameManager : MonoBehaviour
         playerMovement = FindObjectOfType<PlayerMovement>();
         cameraManager = FindObjectOfType<CameraManager>();
 
-        uiManager = FindObjectOfType<UIManager>();
-        if (uiManager == null)
-        {
-            Debug.LogError("未找到UIManager，請確保場景中有UIManager物件！");
-        }
+        // uiManager = FindObjectOfType<UIManager>();
+        // if (uiManager == null)
+        // {
+        //     Debug.LogError("未找到UIManager，請確保場景中有UIManager物件！");
+        // }
     }
 
     void Update()
@@ -61,6 +62,25 @@ public class GameManager : MonoBehaviour
                 uiManager.ShowEnding("Bad");
             }
         }*/
+    }
+
+    void OnEnable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        uiManager = FindObjectOfType<UIManager>();
+        if (uiManager == null)
+            Debug.LogWarning($"[GameManager] UIManager 未在場景 {scene.name} 中找到！");
+        else
+            Debug.Log($"[GameManager] 已找到新場景中的 UIManager：{scene.name}");
     }
 
 
@@ -122,6 +142,11 @@ public class GameManager : MonoBehaviour
         // 切換到主選單場景（假設主選單場景名為 "MainMenu"）
         //UnityEngine.SceneManagement.SceneManager.LoadScene("StartUpMenu");
         sceneManager.LoadScene("StartUpMenu");
+
+        if (uiManager != null)
+        {
+            uiManager.RefreshMainMenuButtons();  // 加上這一行
+        }
 
         // 可選：如果主選單需要特定的初始化邏輯，可以在這裡調用
         Debug.Log("返回主頁面");
