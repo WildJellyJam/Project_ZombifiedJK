@@ -24,7 +24,7 @@ public class GameTime
 
 public class TimeSystem : MonoBehaviour
 {
-    public GameTime gameTime = new GameTime { day = 1, hours = 16f, currentPeriod = TimePeriod.AtSchoolAfterClass }; // 初始時間：週一16:00
+    public GameTime gameTime = new GameTime { day = 1, hours = 16f, currentPeriod = TimePeriod.AtHomeBeforeSleep }; // 初始時間：週一16:00
     private GameManager gameManager;
     private bool hasTriggeredFixedEvent = false;
 
@@ -63,7 +63,7 @@ public class TimeSystem : MonoBehaviour
 
     private void UpdateTimePeriod()
     {
-        bool isWeekend = gameTime.day >= 6;
+        bool isWeekend = gameTime.day >= 5;
         bool goOut = true; // 根據玩家選擇動態設定，假設第一天強制上學
 
         if (isWeekend)
