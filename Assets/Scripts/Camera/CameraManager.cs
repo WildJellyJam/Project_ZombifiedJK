@@ -4,6 +4,7 @@ public class CameraManager : MonoBehaviour
 {
     public Camera mainCamera; // 單一攝影機
     private Transform playerTransform;
+    
 
     public float cameraAngle = 40f; // 俯角40度
 
@@ -11,6 +12,15 @@ public class CameraManager : MonoBehaviour
     public bool useFixedCamera = true; // 控制是否使用固定視角
     public bool applyLookAtAndAngle = true; // 控制是否應用看向點和俯角
     public Vector3 lookAtPosition = Vector3.zero; // 攝影機看向的固定點（默認為場景原點）
+
+    void OnEnable()
+    {
+        newGameManager.Instance.LoadGameEvent += InitializeCamera;
+    }
+    void Osable()
+    {
+        newGameManager.Instance.LoadGameEvent -= InitializeCamera;
+    }
 
     void Start()
     {

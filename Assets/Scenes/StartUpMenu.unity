@@ -322,32 +322,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d1a3cd2b54f0bd42a0d09c9b4e7a801, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainMenuButtonsContainer: {fileID: 0}
   continueButton: {fileID: 557452281}
   newGameButton: {fileID: 2111346022}
   exitButton: {fileID: 1703474912}
   saveListPanel: {fileID: 1873189652}
   saveSlotButtons: []
-  backToMenuButtons: {fileID: 1741897912}
   statsPanel: {fileID: 1010015555}
-  sanitySlider: {fileID: 0}
-  socialEnergySlider: {fileID: 0}
-  popularitySlider: {fileID: 0}
-  anxietySlider: {fileID: 0}
-  affectionText: {fileID: 0}
-  choicePanel: {fileID: 934901628}
-  choiceButtons: []
-  randomEventPanel: {fileID: 1749670205}
-  eventButton: {fileID: 0}
-  sleepTransitionPanel: {fileID: 0}
-  transitionImage: {fileID: 0}
-  pausePanel: {fileID: 2108568820}
-  returnToMainMenuButton: {fileID: 2106062950}
-  isPaused: 0
-  endingPanel: {fileID: 745373173}
-  endingText: {fileID: 0}
-  replayButton: {fileID: 0}
-  returnToMenuButton: {fileID: 0}
 --- !u!4 &464360199
 Transform:
   m_ObjectHideFlags: 0
@@ -465,24 +445,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 526919046}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0b03d7c9c33d34499893fcf6c244c4c, type: 3}
+  m_Script: {fileID: 11500000, guid: c2f127a85271cf04784d2fa9c0628c13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeSystem: {fileID: 0}
-  saveSystem: {fileID: 0}
   playerStats:
     sanity: 0
     socialEnergy: 0
     popularity: 0
     anxiety: 0
-  randomEventManager: {fileID: 0}
   inventory:
     heldItems: []
     collectedItems: []
-  miniGameManager: {fileID: 0}
-  sceneManager: {fileID: 0}
-  playerMovement: {fileID: 0}
-  cameraManager: {fileID: 0}
   gameWeek: 1
 --- !u!4 &526919048
 Transform:
@@ -1745,6 +1718,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1292031332}
   m_CullTransparentMesh: 1
+--- !u!1 &1327403978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1327403979}
+  m_Layer: 0
+  m_Name: TimeSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1327403979
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327403978}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1212.7285, y: 492.90405, z: -183.9607}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1331630065
 GameObject:
   m_ObjectHideFlags: 0
@@ -3110,3 +3114,4 @@ SceneRoots:
   - {fileID: 526919048}
   - {fileID: 464360199}
   - {fileID: 1875504366}
+  - {fileID: 1327403979}

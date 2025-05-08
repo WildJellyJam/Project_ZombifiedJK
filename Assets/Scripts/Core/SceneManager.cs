@@ -1,10 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-public class SceneManager : MonoBehaviour
+using UnityEngine.SceneManagement;
+public class SceneManage
 {
     private bool isLoading = false;
+
     public void SwitchSceneBasedOnTime(TimePeriod period)
     {
         string sceneName = period switch
@@ -22,9 +21,9 @@ public class SceneManager : MonoBehaviour
             _ => "1_atHomeBeforeSleep"
         };
         //UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != sceneName)
+        if (SceneManager.GetActiveScene().name != sceneName)
         {
-            StartCoroutine(LoadSceneAsync(sceneName));
+            SceneManager.LoadSceneAsync(sceneName);
         }
         
     }
@@ -47,28 +46,19 @@ public class SceneManager : MonoBehaviour
         // 檢查當前場景是否與目標場景相同，避免重複加載
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != sceneName && !isLoading)
         {
-            StartCoroutine(LoadSceneAsync(sceneName));
+            SceneManager.LoadSceneAsync(sceneName);
         }
     }
-    private IEnumerator LoadSceneAsync(string sceneName)
-    {
-        isLoading = true; // 標記正在加載
-        AsyncOperation asyncLoad = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
-
-        // 等待加載完成
-        while (!asyncLoad.isDone)
-        {
-            Debug.Log($"Loading progress: {asyncLoad.progress * 100}%");
-            yield return null;
-        }
-
-        isLoading = false; // 加載完成，重置標記
-    }
+    
     public void LoadScene(string sceneName)
     {
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != sceneName && !isLoading)
+        if (SceneManager.GetActiveScene().name != sceneName && !isLoading)
         {
-            StartCoroutine(LoadSceneAsync(sceneName));
+            SceneManager.LoadSceneAsync(sceneName);
         }
+    }
+    public void ReturnToMainMenuScene()
+    {
+        SceneManager.LoadSceneAsync("StartUpMenu");
     }
 }
