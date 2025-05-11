@@ -9,6 +9,16 @@ public class gameUIManager : MonoBehaviour
 
     
     public bool isPaused = false;
+    
+    void OnEnable()
+    {
+        newGameManager.Instance.ReturnToMainMenuEvent += ReturnToMainMenu;
+    }
+    void OnDisable()
+    {
+        newGameManager.Instance.ReturnToMainMenuEvent -= ReturnToMainMenu;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -31,9 +41,9 @@ public class gameUIManager : MonoBehaviour
 
     private void ReturnToMainMenu()
     {
-        isPaused = false;
         TogglePausePanel();
-        newGameManager.Instance.ReturnToMainMenu_gm();
+        isPaused = false;
+        pausePanel.SetActive(false);
     }
 
     private void TogglePausePanel()

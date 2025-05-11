@@ -78,14 +78,13 @@ public class MainMenuUIManager : MonoBehaviour
         // 初始化主頁面按鈕（初始場景）
         InitializeMainMenuButtons();
 
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
 
     }
 
-
     void OnDestroy()
     {
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void OnEnable()

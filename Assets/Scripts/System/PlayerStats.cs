@@ -1,5 +1,5 @@
 [System.Serializable]
-public class PlayerStats
+public static class PlayerStats
 {
     public float sanity; // 理智值
     public float socialEnergy; // 社交能量

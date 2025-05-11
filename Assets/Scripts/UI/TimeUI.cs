@@ -12,10 +12,6 @@ public class TimeUI : MonoBehaviour
         UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
     }
 
-    void OnDestroy()
-    {
-
-    }
 
     // 更新時間顯示
     private void UpdateTimeDisplay(GameTime gameTime)

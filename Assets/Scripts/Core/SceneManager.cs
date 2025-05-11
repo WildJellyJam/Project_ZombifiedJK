@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-public class SceneManage
+public static class SceneManage
 {
     private bool isLoading = false;
 
