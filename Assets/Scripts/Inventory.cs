@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class Inventory
+public static class Inventory
 {
     public List<string> heldItems = new List<string>(); // 持有物品
     public List<string> collectedItems = new List<string>(); // 收集過的物品

@@ -1,9 +1,10 @@
 using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 [System.Serializable]
-    public class SaveData
+public class SaveData
 {
     public GameTime gameTime; // 時間
     public PlayerStats playerStats; // 主角數值
@@ -12,21 +13,20 @@ using System.Collections.Generic;
     public string timestamp; // 存檔時間戳
 }
 
-public class SaveSystem : MonoBehaviour
+public class SaveSystem
 {
     private const int MaxSlots = 3;
     private List<SaveData> saveSlots = new List<SaveData>();
-
-    public void SaveGame(int slotIndex, GameManager gameManager)
+    public void SaveGame(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= MaxSlots) return;
 
         SaveData data = new SaveData
         {
-            gameTime = gameManager.timeSystem.gameTime,
-            playerStats = gameManager.playerStats,
-            inventory = gameManager.inventory,
-            triggeredEvents = gameManager.randomEventManager.GetTriggeredEvents(),
+            gameTime = newGameManager.Instance.timeSystem.gameTime,
+            playerStats = newGameManager.Instance.playerStats,
+            inventory = newGameManager.Instance.inventory,
+            // triggeredEvents = NewGameManager.randomEventManager.GetTriggeredEvents(),
             timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };
 

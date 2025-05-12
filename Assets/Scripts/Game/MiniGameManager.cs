@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MiniGameManager : MonoBehaviour
+public static class MiniGameManager
 {
     public void StartMiniGame(string miniGameName, PlayerStats playerStats)
     {

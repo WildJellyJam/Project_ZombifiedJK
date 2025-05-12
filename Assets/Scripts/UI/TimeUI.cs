@@ -4,30 +4,14 @@ using TMPro;
 public class TimeUI : MonoBehaviour
 {
     public TextMeshProUGUI timeText; // 用於顯示時間的TextMeshProUGUI
-    private GameManager gameManager;
+    // private TimeSystem timeSystem;
 
     void Start()
     {
-        // 獲取GameManager
-        gameManager = GameManager.Instance;
-        if (gameManager == null)
-        {
-            Debug.LogError("未找到GameManager，請確保場景中有GameManager物件！");
-            return;
-        }
-
         // 初始顯示當前時間
-        UpdateTimeDisplay(gameManager.timeSystem.gameTime);
+        UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
     }
 
-    void OnDestroy()
-    {
-        // 取消訂閱，防止記憶體洩漏
-        if (gameManager != null)
-        {
-            //gameManager.UnsubscribeFromTimeUpdated(UpdateTimeDisplay);
-        }
-    }
 
     // 更新時間顯示
     private void UpdateTimeDisplay(GameTime gameTime)

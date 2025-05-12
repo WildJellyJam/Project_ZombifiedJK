@@ -1,17 +1,24 @@
 
 using UnityEngine;
 using UnityEngine.UI;
-
-
-
-
 public class gameUIManager : MonoBehaviour
 {
 
     public GameObject pausePanel;
     public Button returnToMenuButton;
-    private GameManager gameManager;
+
+    
     public bool isPaused = false;
+    
+    void OnEnable()
+    {
+        newGameManager.Instance.ReturnToMainMenuEvent += ReturnToMainMenu;
+    }
+    void OnDisable()
+    {
+        newGameManager.Instance.ReturnToMainMenuEvent -= ReturnToMainMenu;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -34,16 +41,9 @@ public class gameUIManager : MonoBehaviour
 
     private void ReturnToMainMenu()
     {
-        isPaused = false;
         TogglePausePanel();
-        if (gameManager!= null)
-        {
-            gameManager.ReturnToMainMenu_gm();
-        }
-        else
-        {
-            Debug.LogError("GameManager 未初始化，無法返回主頁面！");
-        }
+        isPaused = false;
+        pausePanel.SetActive(false);
     }
 
     private void TogglePausePanel()
@@ -58,6 +58,7 @@ public class gameUIManager : MonoBehaviour
 
     private void OnReturnToMenuButtonClicked()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("StartUpMenu");
+        // UnityEngine.SceneManagement.SceneManager.LoadScene("StartUpMenu");
+        ReturnToMainMenu();
     }
 }
