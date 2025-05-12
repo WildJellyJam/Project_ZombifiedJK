@@ -4,23 +4,23 @@ using UnityEngine;
 
 public static class MiniGameManager
 {
-    public void StartMiniGame(string miniGameName, PlayerStats playerStats)
+    public static void StartMiniGame(string miniGameName)
     {
-        if (miniGameName == "DodgeHand" && playerStats.anxiety > 50)
+        if (miniGameName == "DodgeHand" && PlayerStats.anxiety > 50)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("DodgeHandScene");
         }
-        else if (miniGameName == "Breathing" && playerStats.anxiety > 80)
+        else if (miniGameName == "Breathing" && PlayerStats.anxiety > 80)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("BreathingScene");
         }
     }
 
-    public void EndMiniGame(string result, PlayerStats playerStats)
+    public static void EndMiniGame(string result)
     {
         if (result == "Success")
         {
-            playerStats.UpdateAnxiety(-10f); // 成功降低焦慮
+            PlayerStats.UpdateAnxiety(-10f); // 成功降低焦慮
         }
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
     }

@@ -7,8 +7,8 @@ using System.Runtime.CompilerServices;
 public class SaveData
 {
     public GameTime gameTime; // 時間
-    public PlayerStats playerStats; // 主角數值
-    public Inventory inventory; // 物品
+    // public PlayerStats playerStats; // 主角數值
+    // public Inventory inventory; // 物品
     public List<string> triggeredEvents; // 已觸發事件
     public string timestamp; // 存檔時間戳
 }
@@ -24,8 +24,8 @@ public class SaveSystem
         SaveData data = new SaveData
         {
             gameTime = newGameManager.Instance.timeSystem.gameTime,
-            playerStats = newGameManager.Instance.playerStats,
-            inventory = newGameManager.Instance.inventory,
+            // playerStats = newGameManager.Instance.playerStats,
+            // inventory = newGameManager.Instance.inventory,
             // triggeredEvents = NewGameManager.randomEventManager.GetTriggeredEvents(),
             timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         };

@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public static class SceneManage
 {
-    private bool isLoading = false;
+    private static bool isLoading = false;
 
-    public void SwitchSceneBasedOnTime(TimePeriod period)
+    public static void SwitchSceneBasedOnTime(TimePeriod period)
     {
         string sceneName = period switch
         {
@@ -27,7 +27,7 @@ public static class SceneManage
         }
         
     }
-    public void SwitchScene(TimePeriod period)
+    public static void SwitchScene(TimePeriod period)
     {
         string sceneName = period switch
         {
@@ -50,14 +50,14 @@ public static class SceneManage
         }
     }
     
-    public void LoadScene(string sceneName)
+    public static void LoadScene(string sceneName)
     {
         if (SceneManager.GetActiveScene().name != sceneName && !isLoading)
         {
             SceneManager.LoadSceneAsync(sceneName);
         }
     }
-    public void ReturnToMainMenuScene()
+    public static void ReturnToMainMenuScene()
     {
         SceneManager.LoadSceneAsync("StartUpMenu");
     }
