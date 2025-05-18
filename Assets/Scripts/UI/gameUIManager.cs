@@ -58,7 +58,7 @@ public class gameUIManager : MonoBehaviour
 
     private void OnReturnToMenuButtonClicked()
     {
-        // UnityEngine.SceneManagement.SceneManager.LoadScene("StartUpMenu");
-        ReturnToMainMenu();
+        newGameManager.Instance.ReturnToMainMenu_gm();
+        
     }
 }
