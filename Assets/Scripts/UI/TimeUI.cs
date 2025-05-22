@@ -14,13 +14,14 @@ public class TimeUI : MonoBehaviour
 
 
     // 更新時間顯示
-    private void UpdateTimeDisplay(GameTime gameTime)
+    public void UpdateTimeDisplay(GameTime gameTime)
     {
         if (timeText != null)
         {
             int hour = Mathf.FloorToInt(gameTime.hours);
             int minute = Mathf.FloorToInt((gameTime.hours - hour) * 60);
-            timeText.text = $"Day {gameTime.day}, {hour:00}:{minute:00} ({gameTime.currentPeriod})";
+            timeText.text = $"Day {gameTime.day}\n{hour:00}:{minute:00}";
+            Debug.Log($"已更新時間：{gameTime.hours}");
         }
     }
 }

@@ -22,11 +22,15 @@ public class GameTime
     public TimePeriod currentPeriod; // 當前時間段
 }
 
+
 public class TimeSystem
 {
     public GameTime gameTime = new GameTime { day = 1, hours = 16f, currentPeriod = TimePeriod.AtHomeBeforeSleep }; // 初始時間：週一16:00
     // private GameManager gameManager;
     private bool hasTriggeredFixedEvent = false;
+    private newGameManager gameManager => newGameManager.Instance;
+
+    public static bool goOut = true; // 根據玩家選擇動態設定，假設第一天強制上學
 
     // void Awake()
     // {
@@ -61,23 +65,41 @@ public class TimeSystem
         }
 
         // 處理睡覺過場（16:30 - 21:00）
-        if (gameTime.day == 1 && gameTime.hours >= 16.5f && gameTime.hours < 21f)
+        if (gameTime.hours >= 16.5f && gameTime.hours < 21f)
         {
             gameTime.hours = 21f; // 直接跳到21:00
             // UIManager..ShowSleepTransition();
         }
 
         UpdateTimePeriod();
+        Debug.Log($"更新時間：{gameTime.hours}");
         // CheckCommonEvents();
 
+        if (gameTime.hours == 4f && gameTime.day == 2)
+        {
+            Debug.Log("檢查凌晨4點事件");
+
+            // 觸發固定事件，例如收到訊息
+            newGameManager.Instance.randomEventManager.TriggerEvent("ReceiveMessage", true);
+        }
+
+        if (gameTime.hours == 22f && gameTime.day == 2)
+        {
+            Debug.Log("檢查晚上九點事件");
+
+            // 觸發固定事件，例如收到訊息
+            SceneManage.SwitchScene(TimePeriod.AtSupermarket);
+        }
+
         // 通知 GameManager 更新場景
-        // gameManager.OnTimeManuallyUpdated();
+        gameManager.OnTimeManuallyUpdated();
+        
     }
 
     private void UpdateTimePeriod()
     {
         bool isWeekend = gameTime.day >= 5;
-        bool goOut = true; // 根據玩家選擇動態設定，假設第一天強制上學
+        
 
         if (isWeekend)
         {
@@ -118,58 +140,58 @@ public class TimeSystem
             }
         }
     }
-    // private void CheckCommonEvents()
-    // {
-    //     // 第一天16:00-16:30 收到訊息（非強制）
-    //     if (gameTime.day == 1 && gameTime.hours >= 16f && gameTime.hours < 16.5f)
-    //     {
-    //         gameManager.randomEventManager.TriggerEvent("ReceiveMessage", false);
-    //         hasTriggeredFixedEvent = true;
-    //     }
-    //     // 第二天21:00-22:00 買牛奶（強制）
-    //     if (gameTime.day == 2 && gameTime.hours >= 21f && gameTime.hours < 22f)
-    //     {
-    //         gameManager.randomEventManager.TriggerEvent("BuyMilk", true);
-    //         hasTriggeredFixedEvent = true;
-    //     }
-    //     // 第三天21:00-23:00 收到貓咪影片（非強制）
-    //     if (gameTime.day == 3 && gameTime.hours >= 21f && gameTime.hours < 23f)
-    //     {
-    //         gameManager.randomEventManager.TriggerEvent("ReceiveCatVideo", false);
-    //         hasTriggeredFixedEvent = true;
-    //     }
-    //     // 第三天6:00-7:00 爸媽吵架（強制）
-    //     if (gameTime.day == 3 && gameTime.hours >= 6f && gameTime.hours < 7f)
-    //     {
-    //         gameManager.randomEventManager.TriggerEvent("ParentsArgue", true);
-    //         hasTriggeredFixedEvent = true;
-    //     }
-    //     // 第四天2:00-4:00 探險遇到希多（觸發後強制）
-    //     if (gameTime.day == 4 && gameTime.hours >= 2f && gameTime.hours < 4f)
-    //     {
-    //         bool hasTriggeredAdventure = gameManager.randomEventManager.HasTriggered("MeetSido");
-    //         if (!hasTriggeredAdventure)
-    //         {
-    //             gameManager.randomEventManager.TriggerEvent("MeetSido", true);
-    //             hasTriggeredFixedEvent = true;
-    //         }
-    //     }
-    //     // 第五天4:00 校園熱門度太低觸發事件（觸發後強制）
-    //     if (gameTime.day == 5 && gameTime.hours >= 4f && gameTime.hours < 4.1f)
-    //     {
-    //         if (gameManager.playerStats.popularity < 20f)
-    //         {
-    //             gameManager.randomEventManager.TriggerEvent("LowPopularityEvent", true);
-    //             hasTriggeredFixedEvent = true;
-    //         }
-    //     }
-    //     // 第五天21:00-22:00 買牛奶（強制）
-    //     if (gameTime.day == 5 && gameTime.hours >= 21f && gameTime.hours < 22f)
-    //     {
-    //         gameManager.randomEventManager.TriggerEvent("BuyMilk", true);
-    //         hasTriggeredFixedEvent = true;
-    //     }
-    // }
+    /*private void CheckCommonEvents()
+    {
+        // 第一天16:00-16:30 收到訊息（非強制）
+        if (gameTime.day == 1 && gameTime.hours >= 16f && gameTime.hours < 16.5f)
+        {
+            gameManager.randomEventManager.TriggerEvent("ReceiveMessage", false);
+            hasTriggeredFixedEvent = true;
+        }
+        // 第二天21:00-22:00 買牛奶（強制）
+        if (gameTime.day == 2 && gameTime.hours >= 21f && gameTime.hours < 22f)
+        {
+            gameManager.randomEventManager.TriggerEvent("BuyMilk", true);
+            hasTriggeredFixedEvent = true;
+        }
+        // 第三天21:00-23:00 收到貓咪影片（非強制）
+        if (gameTime.day == 3 && gameTime.hours >= 21f && gameTime.hours < 23f)
+        {
+            gameManager.randomEventManager.TriggerEvent("ReceiveCatVideo", false);
+            hasTriggeredFixedEvent = true;
+        }
+        // 第三天6:00-7:00 爸媽吵架（強制）
+        if (gameTime.day == 3 && gameTime.hours >= 6f && gameTime.hours < 7f)
+        {
+            gameManager.randomEventManager.TriggerEvent("ParentsArgue", true);
+            hasTriggeredFixedEvent = true;
+        }
+        // 第四天2:00-4:00 探險遇到希多（觸發後強制）
+        if (gameTime.day == 4 && gameTime.hours >= 2f && gameTime.hours < 4f)
+        {
+            bool hasTriggeredAdventure = gameManager.randomEventManager.HasTriggered("MeetSido");
+            if (!hasTriggeredAdventure)
+            {
+                gameManager.randomEventManager.TriggerEvent("MeetSido", true);
+                hasTriggeredFixedEvent = true;
+            }
+        }
+        // 第五天4:00 校園熱門度太低觸發事件（觸發後強制）
+        if (gameTime.day == 5 && gameTime.hours >= 4f && gameTime.hours < 4.1f)
+        {
+            if (PlayerStats.popularity < 20f)
+            {
+                gameManager.randomEventManager.TriggerEvent("LowPopularityEvent", true);
+                hasTriggeredFixedEvent = true;
+            }
+        }
+        // 第五天21:00-22:00 買牛奶（強制）
+        if (gameTime.day == 5 && gameTime.hours >= 21f && gameTime.hours < 22f)
+        {
+            gameManager.randomEventManager.TriggerEvent("BuyMilk", true);
+            hasTriggeredFixedEvent = true;
+        }
+    }*/
 
     // private void EndGame()
     // {

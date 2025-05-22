@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class newGameManager : MonoBehaviour
 {
@@ -18,21 +19,27 @@ public class newGameManager : MonoBehaviour
     // static class
     // public Inventory inventory;
     // public MiniGameManager miniGame;
-    // public SceneManage sceneManage;
-    // public PlayerStats playerStats;
+     //public SceneManage sceneManage;
+    public PlayerStats playerStats;
+    //public SceneManager sceneManager;
+    public gameUIManager uiManager;
 
     public SaveSystem saveSystem = new SaveSystem();
     public TimeSystem timeSystem = new TimeSystem();
-    public TimeUI timeUI = new TimeUI();
+    public TimeUI timeUI;
 
     // ? 
     public NPCAffection npcAffection = new NPCAffection();
-    public RandomEventManager randomEventManager = new RandomEventManager();
+    public RandomEventManager randomEventManager;
     
 
     public int gameWeek = 1;
     private bool isGameStarted = false;
 
+    /*void Start()
+    {
+        GameObject.Find("TimeText").GetComponent<TimeUI>();
+    }*/
 
     void Awake()
     {
@@ -40,6 +47,8 @@ public class newGameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -60,23 +69,49 @@ public class newGameManager : MonoBehaviour
         Debug.Log("返回主頁面");
     }
 
-// void OnEnable()
-//     {
-//         newGameManager.Instance.SwitchSceneEvent += SwitchSceneBasedOnTime;
-//         newGameManager.Instance.LoadGameSceneEvent += SwitchSceneBasedOnTime;
-//     }
-//     void OnDisable()
-//     {
-//         newGameManager.Instance.SwitchSceneEvent -= SwitchSceneBasedOnTime;
-//         newGameManager.Instance.LoadGameSceneEvent -= SwitchSceneBasedOnTime;
-//     }
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 嘗試抓 TimeUI 元件（確認你物件名稱為 "TimeText"）
+        GameObject timeTextObj = GameObject.Find("Canvas/TimeText");
+        GameObject randomEventObj = GameObject.Find("randomEvent");
+        if (timeTextObj != null)
+        {
+            timeUI = timeTextObj.GetComponent<TimeUI>();
+            Debug.Log("TimeUI 綁定成功！");
+        }
+        else
+        {
+            timeUI = null;
+            Debug.LogWarning("找不到 TimeUI，請確認 Canvas/TimeText 是否正確！");
+        }
+        if (randomEventObj != null)
+        {
+            randomEventManager = randomEventObj.GetComponent<RandomEventManager>();
+            Debug.Log("RandomEventManager 綁定成功！");
+        }
+        else
+        {
+            randomEventManager = null;
+            Debug.LogWarning("找不到 RandomEventManager，請確認 randomEvent 是否正確！");
+        }
+    }
+    // void OnEnable()
+    //     {
+    //         newGameManager.Instance.SwitchSceneEvent += SwitchSceneBasedOnTime;
+    //         newGameManager.Instance.LoadGameSceneEvent += SwitchSceneBasedOnTime;
+    //     }
+    //     void OnDisable()
+    //     {
+    //         newGameManager.Instance.SwitchSceneEvent -= SwitchSceneBasedOnTime;
+    //         newGameManager.Instance.LoadGameSceneEvent -= SwitchSceneBasedOnTime;
+    //     }
     public void StartNewGame()
     {
         gameWeek = 1;
         ResetForNewWeek();
         isGameStarted = true;
         SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod); //
-        
+
         // uiManager.ShowRandomEventOptions();
         ShowRandomEvent?.Invoke();
         // MakeUIRight();
@@ -112,15 +147,15 @@ public class newGameManager : MonoBehaviour
         // randomEventManager = gameObject.AddComponent<RandomEventManager>();
     }
 
-    // public void OnTimeManuallyUpdated()
-    // {
-    //     sceneManager.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
+     public void OnTimeManuallyUpdated()
+     {
+         SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
 
-    //     if (playerStats.anxiety > 120)
-    //     {
-    //         uiManager.ShowEnding("Bad");
-    //     }
-    // }
+         /*if (playerStats.anxiety > 120)
+         {
+             uiManager.ShowEnding("Bad");
+         }*/
+     }
 
     // public void TriggerChoiceEvent(string[] choices)
     // {
