@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+[DefaultExecutionOrder(-1000)]
 public class newGameManager : MonoBehaviour
 {
     public static newGameManager Instance { get; private set; }
@@ -11,7 +12,7 @@ public class newGameManager : MonoBehaviour
     public event System.Action<TimePeriod> LoadGameSceneEvent;
     public event System.Action LoadGameEvent;
     public event System.Action ReturnToMainMenuEvent;
-    
+
     // need to catch object in scene
     public CameraManager cameraManager;
     public PlayerMovement playerMovement;
@@ -19,7 +20,7 @@ public class newGameManager : MonoBehaviour
     // static class
     // public Inventory inventory;
     // public MiniGameManager miniGame;
-     //public SceneManage sceneManage;
+    //public SceneManage sceneManage;
     public PlayerStats playerStats;
     //public SceneManager sceneManager;
     public gameUIManager uiManager;
@@ -31,7 +32,7 @@ public class newGameManager : MonoBehaviour
     // ? 
     public NPCAffection npcAffection = new NPCAffection();
     public RandomEventManager randomEventManager;
-    
+
 
     public int gameWeek = 1;
     private bool isGameStarted = false;
@@ -58,7 +59,7 @@ public class newGameManager : MonoBehaviour
 
     void Update()
     {
-        
+
     }
 
     public void ReturnToMainMenu_gm()
@@ -147,55 +148,13 @@ public class newGameManager : MonoBehaviour
         // randomEventManager = gameObject.AddComponent<RandomEventManager>();
     }
 
-     public void OnTimeManuallyUpdated()
-     {
-         SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
+    public void OnTimeManuallyUpdated()
+    {
+        SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
 
-         /*if (playerStats.anxiety > 120)
-         {
-             uiManager.ShowEnding("Bad");
-         }*/
-     }
-
-    // public void TriggerChoiceEvent(string[] choices)
-    // {
-    //     uiManager.ShowChoices(choices, (choiceIndex) =>
-    //     {
-    //         if (choiceIndex == 0)
-    //         {
-    //             playerStats.UpdateAnxiety(5f);
-    //             playerStats.socialEnergy -= 10f;
-    //         }
-    //         else if (choiceIndex == 1)
-    //         {
-    //             playerStats.UpdateAnxiety(-5f);
-    //             playerStats.socialEnergy -= 5f;
-    //         }
-    //         timeSystem.AddEventTime(0.5f);
-    //     });
-    // }
-    // public void TriggerNextEvent()
-    // {
-    //     // 假設由UI觸發，這裡直接調用隨機事件
-    //     uiManager.ShowRandomEventOptions();
-    // }
-
-    // public void EndGameWeek()
-    // {
-    //     if (playerStats.anxiety < 20)
-    //     {
-    //         uiManager.ShowEnding("Good");
-    //     }
-    //     else if (playerStats.anxiety > 100)
-    //     {
-    //         uiManager.ShowEnding("Bad");
-    //     }
-    //     else
-    //     {
-    //         uiManager.ShowEnding("Normal");
-    //     }
-
-    //     gameWeek++;
-    //     ResetForNewWeek();
-    // 
+        /*if (playerStats.anxiety > 120)
+        {
+            uiManager.ShowEnding("Bad");
+        }*/
+    } 
 }
