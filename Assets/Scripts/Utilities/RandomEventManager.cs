@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -140,7 +141,6 @@ public class RandomEventManager: MonoBehaviour
         triggeredEvents.Add(eventName);
         Debug.Log($"觸發事件：{eventName}");
         newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
-        
     }
 
     public void TriggerRandomEvent_sleep()
@@ -168,7 +168,6 @@ public class RandomEventManager: MonoBehaviour
         Debug.Log(newGameManager.Instance == null);
         Debug.Log(newGameManager.Instance.timeUI == null);
         Debug.Log(newGameManager.Instance.timeSystem == null);
-                 
     }
 
     public void atHomeEvent()
@@ -182,7 +181,7 @@ public class RandomEventManager: MonoBehaviour
         TimeSystem.goOut = true;
         newGameManager.Instance.timeSystem.AddEventTime(1f);
         newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
-        SceneManage.LoadScene("4_atSchool");
+        // SceneManage.LoadScene("4_atSchool");
     }
 
     // 觸發固定事件（由newGameManager.Instance.TimeSystem調用）
@@ -212,6 +211,7 @@ public class RandomEventManager: MonoBehaviour
                 FindObjectOfType<gameUIManager>().ShowMilk();
                 newGameManager.Instance.timeSystem.AddEventTime(1f);
                 newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
+                TimeSystem.goToMarket = false;
                 break;
             case "ReceiveCatVideo":
                 Debug.Log("收到貓咪影片！");

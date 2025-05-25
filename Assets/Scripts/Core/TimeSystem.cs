@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 
 public enum TimePeriod
@@ -30,8 +31,8 @@ public class TimeSystem
     private bool hasTriggeredFixedEvent = false;
     private newGameManager gameManager => newGameManager.Instance;
 
-    public static bool goOut = true; // 根據玩家選擇動態設定，假設第一天強制上學
-
+    public static bool goOut = false; // 根據玩家選擇動態設定，假設第一天強制上學,為了測試，先改成false
+    public static bool goToMarket = false;
 
     public void AddEventTime(float eventHours)
     {
@@ -67,11 +68,22 @@ public class TimeSystem
             Debug.Log("檢查晚上九點事件");
 
             // 觸發固定事件，例如收到訊息
-            SceneManage.SwitchScene(TimePeriod.AtSupermarket);
+            // SceneManage.SwitchScene(TimePeriod.AtSupermarket);
+            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
+        }
+        if (goOut)
+        {
+            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSchool;
+            goOut = false;
+        }
+        if (goToMarket)
+        {
+            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
+            goToMarket = false;
         }
 
         // 通知 GameManager 更新場景
-        gameManager.OnTimeManuallyUpdated();
+            gameManager.OnTimeManuallyUpdated();
         
     }
 

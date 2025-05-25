@@ -119,10 +119,11 @@ public class gameUIManager : MonoBehaviour
         }
         messageBox.anchoredPosition = targetPos;
     }
-    
+
     public void ShowMilk()
     {
         Debug.Log("進來ㄌ！");
         shopBuyMilkPanel.gameObject.SetActive(true);
+        TimeSystem.goToMarket = true;
     }
 }

@@ -111,7 +111,7 @@ public class newGameManager : MonoBehaviour
         gameWeek = 1;
         ResetForNewWeek();
         isGameStarted = true;
-        SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod); //
+        SceneManage.SwitchScene(timeSystem.gameTime.currentPeriod); //
 
         // uiManager.ShowRandomEventOptions();
         ShowRandomEvent?.Invoke();
@@ -127,7 +127,7 @@ public class newGameManager : MonoBehaviour
             // playerStats = data.playerStats;
             // inventory = data.inventory;
             // randomEventManager = new RandomEventManager();
-            SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod); //
+            SceneManage.SwitchScene(timeSystem.gameTime.currentPeriod); //
             // cameraManager.InitializeCamera(); //
             LoadGameSceneEvent.Invoke(timeSystem.gameTime.currentPeriod);
             LoadGameEvent.Invoke();
@@ -150,11 +150,6 @@ public class newGameManager : MonoBehaviour
 
     public void OnTimeManuallyUpdated()
     {
-        SceneManage.SwitchSceneBasedOnTime(timeSystem.gameTime.currentPeriod);
-
-        /*if (playerStats.anxiety > 120)
-        {
-            uiManager.ShowEnding("Bad");
-        }*/
+        SceneManage.SwitchScene(timeSystem.gameTime.currentPeriod);
     } 
 }
