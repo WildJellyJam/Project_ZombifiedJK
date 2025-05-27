@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 
 public enum TimePeriod
@@ -30,29 +31,8 @@ public class TimeSystem
     private bool hasTriggeredFixedEvent = false;
     private newGameManager gameManager => newGameManager.Instance;
 
-    public static bool goOut = true; // 根據玩家選擇動態設定，假設第一天強制上學
-
-    // void Awake()
-    // {
-    //     if (Instance == null)
-    //     {
-    //         Instance = this;
-    //         DontDestroyOnLoad(gameObject);
-    //     }
-    //     else
-    //     {
-    //         Destroy(gameObject);
-    //     }
-    // }
-
-    // void Start()
-    // {
-    //     gameManager = GameManager.Instance;
-    //     if (gameManager == null)
-    //     {
-    //         Debug.LogError("未找到GameManager！");
-    //     }
-    // }
+    public static bool goOut = false; // 根據玩家選擇動態設定，假設第一天強制上學,為了測試，先改成false
+    public static bool goToMarket = false;
 
     public void AddEventTime(float eventHours)
     {
@@ -88,11 +68,22 @@ public class TimeSystem
             Debug.Log("檢查晚上九點事件");
 
             // 觸發固定事件，例如收到訊息
-            SceneManage.SwitchScene(TimePeriod.AtSupermarket);
+            // SceneManage.SwitchScene(TimePeriod.AtSupermarket);
+            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
+        }
+        if (goOut)
+        {
+            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSchool;
+            goOut = false;
+        }
+        if (goToMarket)
+        {
+            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
+            goToMarket = false;
         }
 
         // 通知 GameManager 更新場景
-        gameManager.OnTimeManuallyUpdated();
+            gameManager.OnTimeManuallyUpdated();
         
     }
 
@@ -140,61 +131,4 @@ public class TimeSystem
             }
         }
     }
-    /*private void CheckCommonEvents()
-    {
-        // 第一天16:00-16:30 收到訊息（非強制）
-        if (gameTime.day == 1 && gameTime.hours >= 16f && gameTime.hours < 16.5f)
-        {
-            gameManager.randomEventManager.TriggerEvent("ReceiveMessage", false);
-            hasTriggeredFixedEvent = true;
-        }
-        // 第二天21:00-22:00 買牛奶（強制）
-        if (gameTime.day == 2 && gameTime.hours >= 21f && gameTime.hours < 22f)
-        {
-            gameManager.randomEventManager.TriggerEvent("BuyMilk", true);
-            hasTriggeredFixedEvent = true;
-        }
-        // 第三天21:00-23:00 收到貓咪影片（非強制）
-        if (gameTime.day == 3 && gameTime.hours >= 21f && gameTime.hours < 23f)
-        {
-            gameManager.randomEventManager.TriggerEvent("ReceiveCatVideo", false);
-            hasTriggeredFixedEvent = true;
-        }
-        // 第三天6:00-7:00 爸媽吵架（強制）
-        if (gameTime.day == 3 && gameTime.hours >= 6f && gameTime.hours < 7f)
-        {
-            gameManager.randomEventManager.TriggerEvent("ParentsArgue", true);
-            hasTriggeredFixedEvent = true;
-        }
-        // 第四天2:00-4:00 探險遇到希多（觸發後強制）
-        if (gameTime.day == 4 && gameTime.hours >= 2f && gameTime.hours < 4f)
-        {
-            bool hasTriggeredAdventure = gameManager.randomEventManager.HasTriggered("MeetSido");
-            if (!hasTriggeredAdventure)
-            {
-                gameManager.randomEventManager.TriggerEvent("MeetSido", true);
-                hasTriggeredFixedEvent = true;
-            }
-        }
-        // 第五天4:00 校園熱門度太低觸發事件（觸發後強制）
-        if (gameTime.day == 5 && gameTime.hours >= 4f && gameTime.hours < 4.1f)
-        {
-            if (PlayerStats.popularity < 20f)
-            {
-                gameManager.randomEventManager.TriggerEvent("LowPopularityEvent", true);
-                hasTriggeredFixedEvent = true;
-            }
-        }
-        // 第五天21:00-22:00 買牛奶（強制）
-        if (gameTime.day == 5 && gameTime.hours >= 21f && gameTime.hours < 22f)
-        {
-            gameManager.randomEventManager.TriggerEvent("BuyMilk", true);
-            hasTriggeredFixedEvent = true;
-        }
-    }*/
-
-    // private void EndGame()
-    // {
-    //     gameManager.EndGameWeek();
-    // }
 }
