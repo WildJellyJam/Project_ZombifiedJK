@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -448,14 +448,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2f127a85271cf04784d2fa9c0628c13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerStats:
-    sanity: 0
-    socialEnergy: 0
-    popularity: 0
-    anxiety: 0
-  inventory:
-    heldItems: []
-    collectedItems: []
+  cameraManager: {fileID: 0}
+  playerMovement: {fileID: 0}
+  uiManager: {fileID: 0}
+  timeUI: {fileID: 0}
+  randomEventManager: {fileID: 0}
   gameWeek: 1
 --- !u!4 &526919048
 Transform:
