@@ -31,8 +31,8 @@ public class TimeSystem
     private bool hasTriggeredFixedEvent = false;
     private newGameManager gameManager => newGameManager.Instance;
 
-    public static bool goOut = false; // 根據玩家選擇動態設定，假設第一天強制上學,為了測試，先改成false
-    public static bool goToMarket = false;
+    // public static bool goOut = false; // 根據玩家選擇動態設定，假設第一天強制上學,為了測試，先改成false
+    // public static bool goToMarket = false;
 
     public void AddEventTime(float eventHours)
     {
@@ -51,7 +51,7 @@ public class TimeSystem
             // UIManager..ShowSleepTransition();
         }
 
-        UpdateTimePeriod();
+        // UpdateTimePeriod();
         Debug.Log($"更新時間：{gameTime.hours}");
         // CheckCommonEvents();
 
@@ -71,64 +71,63 @@ public class TimeSystem
             // SceneManage.SwitchScene(TimePeriod.AtSupermarket);
             newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
         }
-        if (goOut)
-        {
-            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSchool;
-            goOut = false;
-        }
-        if (goToMarket)
-        {
-            newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
-            goToMarket = false;
-        }
+        // if (goOut)
+        // {
+        //     newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSchool;
+        //     goOut = false;
+        // }
+        // if (goToMarket)
+        // {
+        //     newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
+        //     goToMarket = false;
+        // }
 
         // 通知 GameManager 更新場景
             gameManager.OnTimeManuallyUpdated();
-        
     }
 
-    private void UpdateTimePeriod()
-    {
-        bool isWeekend = gameTime.day >= 5;
+    // private void UpdateTimePeriod()
+    // {
+    //     bool isWeekend = gameTime.day >= 5;
         
 
-        if (isWeekend)
-        {
-            if (goOut)
-            {
-                if (gameTime.hours >= 6f && gameTime.hours < 9f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
-                else if (gameTime.hours >= 9f && gameTime.hours < 12f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
-                else if (gameTime.hours >= 12f && gameTime.hours < 15f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
-                else if (gameTime.hours >= 15f && gameTime.hours < 18f) gameTime.currentPeriod = TimePeriod.InCity;
-                else gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
-            }
-            else
-            {
-                if (gameTime.hours >= 6f && gameTime.hours < 9f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
-                else if (gameTime.hours >= 9f && gameTime.hours < 12f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
-                else if (gameTime.hours >= 12f && gameTime.hours < 15f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
-                else gameTime.currentPeriod = TimePeriod.AtHome;
-            }
-        }
-        else
-        {
-            if (goOut)
-            {
-                if (gameTime.hours >= 16f && gameTime.hours < 16.5f) gameTime.currentPeriod = TimePeriod.AtSchoolAfterClass;
-                else if (gameTime.hours >= 16.5f && gameTime.hours < 21f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
-                else if (gameTime.hours >= 21f || gameTime.hours < 6f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
-                else if (gameTime.hours >= 6f && gameTime.hours < 7f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
-                else if (gameTime.hours >= 7.5f && gameTime.hours < 16f) gameTime.currentPeriod = TimePeriod.AtSchool;
-                else gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp; // 通勤時間過渡
-            }
-            else
-            {
-                if (gameTime.hours >= 16f && gameTime.hours < 16.5f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
-                else if (gameTime.hours >= 16.5f && gameTime.hours < 21f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
-                else if (gameTime.hours >= 21f || gameTime.hours < 6f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
-                else if (gameTime.hours >= 6f && gameTime.hours < 7f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
-                else gameTime.currentPeriod = TimePeriod.AtHome;
-            }
-        }
-    }
+    //     if (isWeekend)
+    //     {
+    //         if (goOut)
+    //         {
+    //             if (gameTime.hours >= 6f && gameTime.hours < 9f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
+    //             else if (gameTime.hours >= 9f && gameTime.hours < 12f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
+    //             else if (gameTime.hours >= 12f && gameTime.hours < 15f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
+    //             else if (gameTime.hours >= 15f && gameTime.hours < 18f) gameTime.currentPeriod = TimePeriod.InCity;
+    //             else gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
+    //         }
+    //         else
+    //         {
+    //             if (gameTime.hours >= 6f && gameTime.hours < 9f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
+    //             else if (gameTime.hours >= 9f && gameTime.hours < 12f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
+    //             else if (gameTime.hours >= 12f && gameTime.hours < 15f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
+    //             else gameTime.currentPeriod = TimePeriod.AtHome;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         if (goOut)
+    //         {
+    //             if (gameTime.hours >= 16f && gameTime.hours < 16.5f) gameTime.currentPeriod = TimePeriod.AtSchoolAfterClass;
+    //             else if (gameTime.hours >= 16.5f && gameTime.hours < 21f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
+    //             else if (gameTime.hours >= 21f || gameTime.hours < 6f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
+    //             else if (gameTime.hours >= 6f && gameTime.hours < 7f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
+    //             else if (gameTime.hours >= 7.5f && gameTime.hours < 16f) gameTime.currentPeriod = TimePeriod.AtSchool;
+    //             else gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp; // 通勤時間過渡
+    //         }
+    //         else
+    //         {
+    //             if (gameTime.hours >= 16f && gameTime.hours < 16.5f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
+    //             else if (gameTime.hours >= 16.5f && gameTime.hours < 21f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeSleep;
+    //             else if (gameTime.hours >= 21f || gameTime.hours < 6f) gameTime.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
+    //             else if (gameTime.hours >= 6f && gameTime.hours < 7f) gameTime.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
+    //             else gameTime.currentPeriod = TimePeriod.AtHome;
+    //         }
+    //     }
+    // }
 }

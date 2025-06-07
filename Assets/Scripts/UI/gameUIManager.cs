@@ -124,6 +124,7 @@ public class gameUIManager : MonoBehaviour
     {
         Debug.Log("進來ㄌ！");
         shopBuyMilkPanel.gameObject.SetActive(true);
-        TimeSystem.goToMarket = true;
+        // TimeSystem.goToMarket = true;
+        newGameManager.Instance.playerStats.nextAction = NextAction.goToMarket;
     }
 }

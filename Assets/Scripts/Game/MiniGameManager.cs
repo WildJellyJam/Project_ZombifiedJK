@@ -6,11 +6,11 @@ public static class MiniGameManager
 {
     public static void StartMiniGame(string miniGameName)
     {
-        if (miniGameName == "DodgeHand" && PlayerStats.anxiety > 50)
+        if (miniGameName == "DodgeHand" && newGameManager.Instance.playerStats.anxiety > 50)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("DodgeHandScene");
         }
-        else if (miniGameName == "Breathing" && PlayerStats.anxiety > 80)
+        else if (miniGameName == "Breathing" && newGameManager.Instance.playerStats.anxiety > 80)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("BreathingScene");
         }
@@ -20,7 +20,7 @@ public static class MiniGameManager
     {
         if (result == "Success")
         {
-            PlayerStats.UpdateAnxiety(-10f); // 成功降低焦慮
+            newGameManager.Instance.playerStats.UpdateAnxiety(-10f); // 成功降低焦慮
         }
         UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
     }
