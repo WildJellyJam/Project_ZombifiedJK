@@ -20,12 +20,12 @@ public class newGameManager : MonoBehaviour
     // static class
     // public Inventory inventory;
     // public MiniGameManager miniGame;
-    //public SceneManage sceneManage;
-    public PlayerStats playerStats;
+    public SceneManage sceneManage = new SceneManage();
+    public PlayerStats playerStats = new PlayerStats();
     //public SceneManager sceneManager;
     public gameUIManager uiManager;
 
-    public SaveSystem saveSystem = new SaveSystem();
+    public SaveSystem saveSystem;// = new SaveSystem();
     public TimeSystem timeSystem = new TimeSystem();
     public TimeUI timeUI;
 
@@ -65,7 +65,7 @@ public class newGameManager : MonoBehaviour
     public void ReturnToMainMenu_gm()
     {
         ReturnToMainMenuEvent?.Invoke();
-        SceneManage.ReturnToMainMenuScene();
+        sceneManage.ReturnToMainMenuScene();
         // 可選：如果主選單需要特定的初始化邏輯，可以在這裡調用
         Debug.Log("返回主頁面");
     }
@@ -111,7 +111,7 @@ public class newGameManager : MonoBehaviour
         gameWeek = 1;
         ResetForNewWeek();
         isGameStarted = true;
-        SceneManage.SwitchScene(timeSystem.gameTime.currentPeriod); //
+        sceneManage.SwitchScene(); //
 
         // uiManager.ShowRandomEventOptions();
         ShowRandomEvent?.Invoke();
@@ -127,7 +127,7 @@ public class newGameManager : MonoBehaviour
             // playerStats = data.playerStats;
             // inventory = data.inventory;
             // randomEventManager = new RandomEventManager();
-            SceneManage.SwitchScene(timeSystem.gameTime.currentPeriod); //
+            sceneManage.SwitchScene(); //
             // cameraManager.InitializeCamera(); //
             LoadGameSceneEvent.Invoke(timeSystem.gameTime.currentPeriod);
             LoadGameEvent.Invoke();
@@ -141,15 +141,15 @@ public class newGameManager : MonoBehaviour
     {
         timeSystem.gameTime = new GameTime { day = 1, hours = 16f, currentPeriod = TimePeriod.AtHomeBeforeSleep };
         ResetNewWeekEvent?.Invoke();
-        PlayerStats.sanity = 100f;
-        PlayerStats.socialEnergy = 100f;
-        PlayerStats.popularity = 0f;
-        PlayerStats.anxiety = 0f;
+        playerStats.sanity = 100f;
+        playerStats.socialEnergy = 100f;
+        playerStats.popularity = 0f;
+        playerStats.anxiety = 0f;
         // randomEventManager = gameObject.AddComponent<RandomEventManager>();
     }
 
     public void OnTimeManuallyUpdated()
     {
-        SceneManage.SwitchScene(timeSystem.gameTime.currentPeriod);
+        sceneManage.SwitchScene();
     } 
 }
