@@ -1,9 +1,24 @@
-using System.IO.Pipes;
 using UnityEngine;
+using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+
 public class SceneManage
 {
     // private bool isLoading = false;
+    public GameObject cutScenePanel;
+    public TextMeshProUGUI cutScenePanelTextUI;
+
+    private Dictionary<TimePeriod, string> cutScenePanelMessage = new Dictionary<TimePeriod, string>
+    {
+        [TimePeriod.AtHomeAfterWakeUp]   = "sleep...",
+        [TimePeriod.AtHomeBeforeLeaving] = "prepare to school, want stay or go?",
+        [TimePeriod.AtHomeBeforeSleep]   = "finaly go home, i want to sleep...",
+        [TimePeriod.AtSchool]            = "",
+        [TimePeriod.AtSchoolAfterClass]  = "", 
+        [TimePeriod.AtSupermarket]       = "mom let u got o shop buy milk",
+        [TimePeriod.AtHome]              = "stay at home",
+    };
 
     private void UpdateTimePeriod()
     {
@@ -40,11 +55,14 @@ public class SceneManage
                 case NextAction.goToMarket:
                     time.currentPeriod = TimePeriod.AtSupermarket;
                     break;
+                case NextAction.goBackHome:
+                    time.currentPeriod = TimePeriod.AtHome;
+                    break;
                 default:
                     if (time.hours >= 16f && time.hours < 16.5f) time.currentPeriod = TimePeriod.AtHomeBeforeSleep;
                     else if (time.hours >= 16.5f && time.hours < 21f) time.currentPeriod = TimePeriod.AtHomeBeforeSleep;
                     else if (time.hours >= 21f || time.hours < 6f) time.currentPeriod = TimePeriod.AtHomeAfterWakeUp;
-                    else if (time.hours >= 6f && time.hours < 7f) time.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
+                    else if (time.hours > 6f && time.hours <= 7f) time.currentPeriod = TimePeriod.AtHomeBeforeLeaving;
                     else time.currentPeriod = TimePeriod.AtHome;
                     break;
             }
@@ -69,7 +87,7 @@ public class SceneManage
                 UpdateTimePeriod();
                 break;
         }
-        
+        period = newGameManager.Instance.timeSystem.gameTime.currentPeriod;
         string sceneName = period switch
         {
             TimePeriod.AtSchoolAfterClass => "0_atSchoolAfterClass",
@@ -85,21 +103,27 @@ public class SceneManage
             _ => "1_atHomeBeforeSleep"
         };
         // 檢查當前場景是否與目標場景相同，避免重複加載
+        Debug.Log("in switch scene");
+        Debug.Log(sceneName);
+        Debug.Log(period);
+        if (sceneName == "4_atSchool")
+        {
+            newGameManager.Instance.playerStats.updateDailyState();
+        }
+        else if (sceneName == "2_atHomeAfterWakeUp")
+        {
+            newGameManager.Instance.playerStats.resetDailyState();
+        }
         if (SceneManager.GetActiveScene().name != sceneName) // && !isLoading)
         {
-            SceneManager.LoadSceneAsync(sceneName);
+            SceneManager.LoadScene(sceneName);
+
         }
     }
-    
-    public void LoadScene(string sceneName)
-    {
-        if (SceneManager.GetActiveScene().name != sceneName) // && !isLoading)
-        {
-            SceneManager.LoadSceneAsync(sceneName);
-        }
-    }
+
     public void ReturnToMainMenuScene()
     {
         SceneManager.LoadSceneAsync("StartUpMenu");
     }
+    
 }

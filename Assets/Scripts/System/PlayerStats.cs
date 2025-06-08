@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using UnityEditor.PackageManager;
+
 [System.Serializable]
 
 
@@ -29,6 +32,7 @@ public class PlayerStats
 
     public NextAction nextAction = NextAction.none;
     public SpecialEvent specialEvent = SpecialEvent.none;
+    private bool stayHome = true;
 
     public void Interact()
     {
@@ -46,5 +50,27 @@ public class PlayerStats
     private void TriggerBadEnding()
     {
         // 觸發壞結局
+    }
+    public void updateDailyState()
+    {
+        switch (newGameManager.Instance.playerStats.nextAction)
+        {
+            case NextAction.goOut:
+                stayHome = false;
+                break;
+            case NextAction.goToMarket:
+                stayHome = false;
+                break;
+            default:
+                break;
+        }
+    }
+    public void resetDailyState()
+    {
+        stayHome = true;
+    }
+    public bool getDailyState()
+    {
+        return stayHome;
     }
 }

@@ -183,6 +183,7 @@ public class RandomEventManager: MonoBehaviour
     {
         // TimeSystem.goOut = true;
         newGameManager.Instance.playerStats.nextAction = NextAction.goOut;
+        newGameManager.Instance.playerStats.updateDailyState();
         newGameManager.Instance.timeSystem.AddEventTime(1f);
         newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
         newGameManager.Instance.playerStats.nextAction = NextAction.none;

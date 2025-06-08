@@ -17,7 +17,7 @@ public class CameraManager : MonoBehaviour
     {
         newGameManager.Instance.LoadGameEvent += InitializeCamera;
     }
-    void Osable()
+    void OnDisable()
     {
         newGameManager.Instance.LoadGameEvent -= InitializeCamera;
     }
