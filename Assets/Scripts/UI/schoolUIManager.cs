@@ -19,6 +19,7 @@ public class schoolUIManager : MonoBehaviour
     private Vector2 hiddenPos; // 螢幕外的位置
     private Vector2 visiblePos; // 顯示的位置
     private Coroutine slideCoroutine;
+    private CameraManager cameraManager;
 
     void OnEnable()
     {
@@ -38,6 +39,9 @@ public class schoolUIManager : MonoBehaviour
         {
             Debug.LogError("continueButton 未找到，請檢查 MainMenuButtonsContainer 中是否存在 'continueBtn'！");
         }
+        cameraManager = FindObjectOfType<CameraManager>();
+        if (cameraManager == null) Debug.Log("not catch camera manager");
+        Debug.Log(cameraManager.usingFixedCamera);
         hiddenPos = new Vector2(-150, 100);    // 螢幕外上方
         visiblePos = new Vector2(-150, 10);   // 螢幕內顯示位置
         messageBox.anchoredPosition = hiddenPos;
@@ -54,6 +58,10 @@ public class schoolUIManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             newGameManager.Instance.timeSystem.AddEventTime(1f);
+        }
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            cameraManager.ToggleCamera();
         }
     }
         private void ReturnToMainMenu()
