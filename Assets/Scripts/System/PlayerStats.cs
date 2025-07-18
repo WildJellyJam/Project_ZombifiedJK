@@ -27,6 +27,7 @@ public class PlayerStats
     public float socialEnergy; // 社交能量
     public float popularity; // 校園熱門度
     public float anxiety; // 焦慮指數
+    public float randomEventTime = 0f;
 
     // public string nowScene;
 

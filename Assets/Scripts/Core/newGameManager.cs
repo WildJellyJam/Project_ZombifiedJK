@@ -31,7 +31,7 @@ public class newGameManager : MonoBehaviour
 
     // ? 
     public NPCAffection npcAffection = new NPCAffection();
-    public RandomEventManager randomEventManager;
+    public RandomEventManager eventManager;
 
 
     public int gameWeek = 1;
@@ -87,12 +87,12 @@ public class newGameManager : MonoBehaviour
         }
         if (randomEventObj != null)
         {
-            randomEventManager = randomEventObj.GetComponent<RandomEventManager>();
+            eventManager = randomEventObj.GetComponent<RandomEventManager>();
             Debug.Log("RandomEventManager 綁定成功！");
         }
         else
         {
-            randomEventManager = null;
+            eventManager = null;
             Debug.LogWarning("找不到 RandomEventManager，請確認 randomEvent 是否正確！");
         }
     }

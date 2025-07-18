@@ -58,17 +58,19 @@ public class gameUIManager : MonoBehaviour
         Debug.Log("start UIManager");
         hiddenPos = new Vector2(-150, 100);    // 螢幕外上方
         visiblePos = new Vector2(-150, 10);   // 螢幕內顯示位置
-        FindPanelFromResources();
+        // FindPanelFromResources();
         var currentPeriod = newGameManager.Instance.timeSystem.gameTime.currentPeriod;
         Debug.Log(cutScenePanelMessage[currentPeriod]);
-        
+
         if (cutScenePanelMessage.TryGetValue(currentPeriod, out var msg))
         {
             if (currentPeriod == TimePeriod.AtHomeBeforeSleep && newGameManager.Instance.playerStats.getDailyState())
             {
                 msg = "all day stay home, i want to sleep...";
             }
-            displayCutScenePanel(msg);
+            // displayCutScenePanel(msg);
+            if (newGameManager.Instance.eventManager != null)
+                newGameManager.Instance.eventManager.ShowEventPanel(msg, "panelPrefabs/cutScenePanelPrefab");
         }
         else
         {
@@ -76,7 +78,7 @@ public class gameUIManager : MonoBehaviour
         }
         // displaycutScenePanel(cutScenePanelMessage[currentPeriod]);
         // messageBox.anchoredPosition = hiddenPos;
-        panel.gameObject.SetActive(false); // 預設關閉
+        if(panel != null) panel.gameObject.SetActive(false); // 預設關閉
     }
 
     // Update is called once per frame
@@ -88,23 +90,6 @@ public class gameUIManager : MonoBehaviour
         }
         // if (cutScenePanel.activeInHierarchy && Input.GetMouseButtonDown(0))
         // cutScenePanel.SetActive(false);
-    }
-
-    public void FindPanelFromResources()
-    {
-        Debug.Log("find panel from resource");
-        Canvas canvas = FindObjectOfType<Canvas>();
-        GameObject prefab = Resources.Load<GameObject>("panelPrefabs/cutScenePanelPrefab"); // 路徑不含 Resources 與副檔名
-        cutScenePanel = Instantiate(prefab, canvas.transform, false);
-        cutScenePanelTextUI = cutScenePanel.transform.Find("displayText").GetComponent<TextMeshProUGUI>();
-        if (cutScenePanel == null || cutScenePanelMessage == null) Debug.Log("WTF??");
-        cutScenePanel.SetActive(false);
-    }
-    public void displayCutScenePanel(string message)
-    {
-        Debug.Log("display dynamic panel: ");
-        cutScenePanelTextUI.text = message;
-        cutScenePanel.SetActive(true);
     }
 
     private void ReturnToMainMenu()
@@ -134,7 +119,7 @@ public class gameUIManager : MonoBehaviour
     {
         if (slideCoroutine != null)
             StopCoroutine(slideCoroutine);
-
+        if (panel == null) return;
         panel.gameObject.SetActive(true);
         messageText.text = msg;
         slideCoroutine = StartCoroutine(SlideInOut());

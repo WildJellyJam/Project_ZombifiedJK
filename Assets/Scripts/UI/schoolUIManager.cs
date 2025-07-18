@@ -44,7 +44,7 @@ public class schoolUIManager : MonoBehaviour
         Debug.Log(cameraManager.usingFixedCamera);
         hiddenPos = new Vector2(-150, 100);    // 螢幕外上方
         visiblePos = new Vector2(-150, 10);   // 螢幕內顯示位置
-        messageBox.anchoredPosition = hiddenPos;
+        if(messageBox != null) messageBox.anchoredPosition = hiddenPos;
         pausePanel.gameObject.SetActive(false); // 預設關閉
     }
 

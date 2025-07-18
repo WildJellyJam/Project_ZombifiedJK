@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 
 public class RandomEventManager: MonoBehaviour
@@ -9,9 +10,9 @@ public class RandomEventManager: MonoBehaviour
     private List<string> triggeredEvents = new List<string>();
     // private newGameManager.Instance newGameManager.Instance;
     // private newGameManager.Instance.TimeSystem newGameManager.Instance.timeSystem;
-    public TimeSystem timeSystem;
-    public GameObject eventPanelPrefab; // 在 Inspector 拖入
-    private GameObject currentEventPanel;
+
+    public GameObject cutScenePanel;
+    public TextMeshProUGUI cutScenePanelTextUI;
 
 
     // 觸發隨機事件（基於隨機碼）
@@ -38,12 +39,13 @@ public class RandomEventManager: MonoBehaviour
         {
             eventName = "SpecialEvent";
         }
+        ShowEventPanel(eventName, "panelPrefabs/cutScenePanelPrefab");
 
         triggeredEvents.Add(eventName);
         Debug.Log($"觸發事件：{eventName}");
 
         // 事件完成後推進時間（1小時）
-        newGameManager.Instance.timeSystem.AddEventTime(1f);
+        // newGameManager.Instance.timeSystem.AddEventTime(1f);
 
         // 觸發下一個隨機事件
         // newnewGameManager.Instance.Instance.TriggerNextEvent();
@@ -222,7 +224,7 @@ public class RandomEventManager: MonoBehaviour
             case "ReceiveCatVideo":
                 Debug.Log("收到貓咪影片！");
                 newGameManager.Instance.playerStats.UpdateAnxiety(-5f);
-                ShowEventPanel("你收到了超可愛的貓咪影片，心情稍微放鬆了一點。");
+                ShowEventPanel("你收到了超可愛的貓咪影片，心情稍微放鬆了一點。", "panelPrefabs/cutScenePanelPrefab");
                 break;
             case "ParentsArgue":
                 Debug.Log("爸媽吵架了...");
@@ -246,18 +248,20 @@ public class RandomEventManager: MonoBehaviour
         newGameManager.Instance.OnTimeManuallyUpdated();
     }
 
-    private void ShowEventPanel(string description)
+    public void ShowEventPanel(string description, string path)
     {
-        if (currentEventPanel != null) Destroy(currentEventPanel);
-
-        currentEventPanel = Instantiate(eventPanelPrefab, GameObject.Find("Canvas").transform);
-        currentEventPanel.transform.Find("DescriptionText").GetComponent<TMPro.TextMeshProUGUI>().text = description;
-
-        Button closeButton = currentEventPanel.transform.Find("CloseButton").GetComponent<Button>();
-        closeButton.onClick.AddListener(() =>
-        {
-            Destroy(currentEventPanel);
-        });
+        
+        Debug.Log("find panel from resource");
+        Canvas canvas = FindObjectOfType<Canvas>();
+        GameObject prefab = Resources.Load<GameObject>(path); // 路徑不含 Resources 與副檔名
+        if (prefab == null) return;
+        cutScenePanel = Instantiate(prefab, canvas.transform, false);
+        cutScenePanelTextUI = cutScenePanel.transform.Find("displayText").GetComponent<TextMeshProUGUI>();
+        if (cutScenePanel == null || description == null) Debug.Log("WTF??");
+        cutScenePanel.SetActive(false);
+        Debug.Log("display dynamic panel: ");
+        cutScenePanelTextUI.text = description;
+        cutScenePanel.SetActive(true);
     }
 
     // 檢查事件是否已觸發
