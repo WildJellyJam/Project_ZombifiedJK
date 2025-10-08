@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-1504262648884226796
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -7,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ToonColor
-  m_Shader: {fileID: -6465566751694194690, guid: 065a7cf178d461e4a8f867b3a6c50a87, type: 3}
+  m_Name: BlackBoard
+  m_Shader: {fileID: -6465566751694194690, guid: f4c3a58a95c6dfe409b2a568fcfb86f6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -28,7 +41,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_302cdf18b2b843708e225a25537388f3_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: 92ca9927e96cc7343b50416211d8dd59, type: 3}
+        m_Texture: {fileID: 2800000, guid: 630840a097938cd4b9e23dbdb80defb7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -48,19 +61,6 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _LitColor: {r: 0.8207547, g: 0.63105196, b: 0.5149074, a: 0}
-    - _ShadowColor: {r: 0.3962264, g: 0.18689924, b: 0, a: 0}
+    - _LitColor: {r: 0.032751877, g: 0.3018868, b: 0.06678311, a: 0}
+    - _ShadowColor: {r: 0.024830898, g: 0.16981131, b: 0.08232743, a: 0}
   m_BuildTextureStacks: []
---- !u!114 &8518193523238239690
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 7
