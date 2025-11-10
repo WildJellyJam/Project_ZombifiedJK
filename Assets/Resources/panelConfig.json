@@ -1,0 +1,22 @@
+{
+    "panels": [
+        {
+            "name": "homeEventPanel",
+            "prefabPath": "panelPrefabs/cutScenePanelPrefab",
+            "elements": [
+                {
+                    "elementName": "TitleText",
+                    "text": "歡迎使用本系統",
+                    "fontSize": 32,
+                    "fontStyle": "Bold"
+                },
+                {
+                    "elementName": "DescriptionText",
+                    "text": "請點擊下方按鈕繼續",
+                    "fontSize": 24,
+                    "fontStyle": "Regular"
+                }
+            ]
+        }
+    ]
+}

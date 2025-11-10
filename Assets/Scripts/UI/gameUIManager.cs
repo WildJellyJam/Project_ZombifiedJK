@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
+
 public class gameUIManager : MonoBehaviour
 {
 
@@ -12,6 +14,8 @@ public class gameUIManager : MonoBehaviour
 
     public bool isPaused = false;
     public RectTransform panel; // UI 的 Panel
+    public GameObject cutScenePanel;
+    public TextMeshProUGUI cutScenePanelTextUI;
     public RectTransform shopBuyMilkPanel;
     public TextMeshProUGUI messageText; // 顯示的訊息內容
     public RectTransform messageBox;
@@ -22,17 +26,20 @@ public class gameUIManager : MonoBehaviour
     private Vector2 visiblePos; // 顯示的位置
     private Coroutine slideCoroutine;
 
+    private Dictionary<TimePeriod, string> cutScenePanelMessage = new Dictionary<TimePeriod, string>
+    {
+        [TimePeriod.AtHomeAfterWakeUp]   = "sleep...",
+        [TimePeriod.AtHomeBeforeLeaving] = "prepare to school, want stay or go?",
+        [TimePeriod.AtHomeBeforeSleep]   = "finaly go home, i want to sleep...",
+        [TimePeriod.AtSchool]            = "",
+        [TimePeriod.AtSchoolAfterClass]  = "", 
+        [TimePeriod.AtSupermarket]       = "mom let u got o shop buy milk",
+        [TimePeriod.AtHome]              = "stay at home",
+    };
+
     void OnEnable()
     {
         newGameManager.Instance.ReturnToMainMenuEvent += ReturnToMainMenu;
-        /*if (newGameManager.Instance != null)
-        {
-            newGameManager.Instance.ReturnToMainMenuEvent += ReturnToMainMenu;
-        }
-        else
-        {
-            Debug.LogWarning("newGameManager.Instance 尚未初始化，無法註冊 ReturnToMainMenuEvent！");
-        }*/
     }
     void OnDisable()
     {
@@ -48,10 +55,30 @@ public class gameUIManager : MonoBehaviour
         {
             Debug.LogError("continueButton 未找到，請檢查 MainMenuButtonsContainer 中是否存在 'continueBtn'！");
         }
+        Debug.Log("start UIManager");
         hiddenPos = new Vector2(-150, 100);    // 螢幕外上方
         visiblePos = new Vector2(-150, 10);   // 螢幕內顯示位置
-        messageBox.anchoredPosition = hiddenPos;
-        panel.gameObject.SetActive(false); // 預設關閉
+        // FindPanelFromResources();
+        var currentPeriod = newGameManager.Instance.timeSystem.gameTime.currentPeriod;
+        Debug.Log(cutScenePanelMessage[currentPeriod]);
+
+        if (cutScenePanelMessage.TryGetValue(currentPeriod, out var msg))
+        {
+            if (currentPeriod == TimePeriod.AtHomeBeforeSleep && newGameManager.Instance.playerStats.getDailyState())
+            {
+                msg = "all day stay home, i want to sleep...";
+            }
+            // displayCutScenePanel(msg);
+            if (newGameManager.Instance.eventManager != null)
+                newGameManager.Instance.eventManager.ShowEventPanel(msg, "panelPrefabs/cutScenePanelPrefab");
+        }
+        else
+        {
+            Debug.LogWarning($"TimePeriod {currentPeriod} 尚未配置 cut-scene 訊息！");
+        }
+        // displaycutScenePanel(cutScenePanelMessage[currentPeriod]);
+        // messageBox.anchoredPosition = hiddenPos;
+        if(panel != null) panel.gameObject.SetActive(false); // 預設關閉
     }
 
     // Update is called once per frame
@@ -61,6 +88,8 @@ public class gameUIManager : MonoBehaviour
         {
             TogglePausePanel();
         }
+        // if (cutScenePanel.activeInHierarchy && Input.GetMouseButtonDown(0))
+        // cutScenePanel.SetActive(false);
     }
 
     private void ReturnToMainMenu()
@@ -90,11 +119,11 @@ public class gameUIManager : MonoBehaviour
     {
         if (slideCoroutine != null)
             StopCoroutine(slideCoroutine);
-
+        if (panel == null) return;
         panel.gameObject.SetActive(true);
         messageText.text = msg;
         slideCoroutine = StartCoroutine(SlideInOut());
-    } 
+    }
 
     private IEnumerator SlideInOut()
     {

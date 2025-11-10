@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
+
 public enum TimePeriod
 {
     AtSchoolAfterClass,       // 放學（16:00-16:30）
@@ -60,7 +61,7 @@ public class TimeSystem
             Debug.Log("檢查凌晨4點事件");
 
             // 觸發固定事件，例如收到訊息
-            newGameManager.Instance.randomEventManager.TriggerEvent("ReceiveMessage", true);
+            newGameManager.Instance.eventManager.TriggerEvent("ReceiveMessage", true);
         }
 
         if (gameTime.hours == 22f && gameTime.day == 2)
@@ -71,18 +72,23 @@ public class TimeSystem
             // SceneManage.SwitchScene(TimePeriod.AtSupermarket);
             newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
         }
-        // if (goOut)
-        // {
-        //     newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSchool;
-        //     goOut = false;
-        // }
-        // if (goToMarket)
-        // {
-        //     newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
-        //     goToMarket = false;
-        // }
+        if (newGameManager.Instance.playerStats.randomEventTime == 0 || System.Math.Abs(newGameManager.Instance.playerStats.randomEventTime - gameTime.hours) > 3)
+        {
+            newGameManager.Instance.playerStats.randomEventTime = gameTime.hours;
+            if (newGameManager.Instance.eventManager != null) newGameManager.Instance.eventManager.TriggerRandomEvent();
+        }
+            // if (goOut)
+            // {
+            //     newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSchool;
+            //     goOut = false;
+            // }
+            // if (goToMarket)
+            // {
+            //     newGameManager.Instance.timeSystem.gameTime.currentPeriod = TimePeriod.AtSupermarket;
+            //     goToMarket = false;
+            // }
 
-        // 通知 GameManager 更新場景
+            // 通知 GameManager 更新場景
             gameManager.OnTimeManuallyUpdated();
     }
 
