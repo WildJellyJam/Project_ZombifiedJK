@@ -2,116 +2,210 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Video;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class MinigameOption
 {
-    public float anxietyThreshold;         // 這個焦慮值以上會選到這個遊戲
-    public GameObject minigamePrefab;      // 要實例化的 minigame prefab
+    [Header("Anxiety Range")]
+    [Tooltip("Minimum anxiety value (inclusive) for this minigame.")]
+    public float minAnxiety;
+    [Tooltip("Maximum anxiety value (exclusive) for this minigame.")]
+    public float maxAnxiety;
+
+    [Header("Minigame Prefab")]
+    [Tooltip("Prefab to spawn for this minigame.")]
+    public GameObject minigamePrefab;
+
+    [Header("Cutscenes")]
+    public VideoClip introVideo;
+    public VideoClip winVideo;
+    public VideoClip loseVideo;
 }
 
 public class MinigameManagerJr : MonoBehaviour
 {
-    [Header("Minigame Settings")]
-    public int minigamesToPlay = 3;       // 要連續玩幾個小遊戲
+    [Header("Main Settings")]
+    [Tooltip("How many minigames to play before finishing.")]
+    public int minigamesToPlay = 3;
     private int currentMinigameCount = 0;
-
-    [Header("Animation")]
-    public Animator transitionAnimator;   // Intro / Win / Lose 動畫
-
-    [Header("Minigame Options")]
-    public List<MinigameOption> minigameOptions = new List<MinigameOption>();
-
     private GameObject activeMinigame;
 
-    // ✅ 外部呼叫用 (Trigger、劇情等等)
+    [Header("Video Player")]
+    [Tooltip("The Video Player component used for all cutscenes.")]
+    public VideoPlayer videoPlayer;
+
+    [Header("Available Minigames")]
+    public List<MinigameOption> minigameOptions = new List<MinigameOption>();
+
+    // ======================  LIFE CYCLE  =======================
+    private IEnumerator Start()
+    {
+        // Wait until GameManager exists
+        yield return new WaitUntil(() => GameManager.Instance != null);
+        Debug.Log($"🧠 GameManager found! Anxiety = {GameManager.Instance.anxiety}");
+
+        StartMinigameSequence();
+    }
+
+    // ======================  ENTRY POINT  ======================
     public void StartMinigameSequence()
     {
         currentMinigameCount = 0;
         StartCoroutine(PlayMinigameFlow());
     }
 
-    // ✅ 如果你之前用 StartMinigameFlow，不想改其他地方，可以留著：
-    public void StartMinigameFlow()
-    {
-        StartMinigameSequence();
-    }
-
-    // --- 主要流程：動畫 → minigame → 結果 → 下一個 ---
+    // ======================  MAIN FLOW  ========================
     private IEnumerator PlayMinigameFlow()
     {
+        Debug.Log("▶️ Starting PlayMinigameFlow()");
+
         while (currentMinigameCount < minigamesToPlay)
         {
-            // 1. 播放開場動畫
-            if (transitionAnimator)
-            {
-                transitionAnimator.SetTrigger("StartMinigame");
-                yield return new WaitForSeconds(1f);
-            }
+            Debug.Log($"--- Round {currentMinigameCount + 1} ---");
 
-            // 2. 根據焦慮值選 minigame prefab
-            GameObject selectedMinigame = SelectMinigameBasedOnAnxiety();
-            if (selectedMinigame == null)
+            // 1️⃣ Select minigame
+            MinigameOption option = SelectMinigameBasedOnAnxiety();
+
+            if (option == null)
             {
-                Debug.LogWarning("⚠ 沒有符合焦慮值的 minigame！");
+                Debug.LogError("❌ SelectMinigameBasedOnAnxiety() returned null!");
                 yield break;
             }
 
-            // 3. 實例化小遊戲
-            activeMinigame = Instantiate(selectedMinigame);
-            MinigameBase minigame = activeMinigame.GetComponent<MinigameBase>();
+            Debug.Log($"✅ Selected minigame prefab: {(option.minigamePrefab ? option.minigamePrefab.name : "NULL")}");
+            Debug.Log($"🎬 Intro clip: {(option.introVideo ? option.introVideo.name : "none")}");
 
-            bool? result = null; // true=win, false=lose
-            minigame.OnMinigameEnd += (bool won) => { result = won; };
+            // 2️⃣ Play intro
+            if (option.introVideo != null)
+                yield return PlayCutscene(option.introVideo);
 
-            // 等 minigame 呼叫 EndMinigame()
-            yield return new WaitUntil(() => result.HasValue);
-
-            // 4. 播放勝利 or 失敗動畫
-            if (transitionAnimator)
+            // 3️⃣ Instantiate
+            if (option.minigamePrefab == null)
             {
-                transitionAnimator.SetTrigger(result.Value ? "Win" : "Lose");
-                yield return new WaitForSeconds(1f);
+                Debug.LogError("❌ option.minigamePrefab is NULL in Inspector!");
+                yield break;
             }
 
-            // 5. 清除小遊戲
+            activeMinigame = Instantiate(option.minigamePrefab);
+            MinigameBase minigame = activeMinigame.GetComponentInChildren<MinigameBase>();
+
+            if (minigame == null)
+            {
+                Debug.LogError($"❌ The prefab '{option.minigamePrefab.name}' has NO MinigameBase script!");
+                yield break;
+            }
+
+            bool? result = null;
+            minigame.OnMinigameEnd += (bool won) => { result = won; };
+
+            yield return new WaitUntil(() => result.HasValue);
+
+            Debug.Log($"🏁 Minigame finished, result = {result}");
+
+            // 4️⃣ Play win / lose
+            if (result.Value && option.winVideo != null)
+                yield return PlayCutscene(option.winVideo);
+            else if (!result.Value && option.loseVideo != null)
+                yield return PlayCutscene(option.loseVideo);
+
+            // 5️⃣ Clean up
             Destroy(activeMinigame);
             activeMinigame = null;
             currentMinigameCount++;
         }
+        Debug.Log($"Spawned: {activeMinigame.name}, Has MinigameBase: {activeMinigame.GetComponent<MinigameBase>() != null}");
 
-        // ✅ 全部 minigame 結束後才統一處理焦慮值 & 換場景
         FinishAllMinigames();
     }
 
-    // --- 全部 minigame 結束後要做什麼 ---
-    private void FinishAllMinigames()
+    // ====================  CUTSCENE HANDLER  ===================
+    private IEnumerator PlayCutscene(VideoClip clip)
     {
-        Debug.Log($"✅ {minigamesToPlay} 個小遊戲結束！");
+        if (videoPlayer == null)
+        {
+            Debug.LogError("❌ VideoPlayer not assigned to MinigameManagerJr!");
+            yield break;
+        }
+        if (clip == null)
+        {
+            Debug.LogError("❌ Video clip is null!");
+            yield break;
+        }
 
-        // 👉 這裡你可以決定加或減焦慮值
-        GameManager.Instance.AddAnxiety(-10);  // 贏得多 = 放鬆
-        // GameManager.Instance.AddAnxiety(+10); // 或者失敗多 = 更焦慮
+        RawImage raw = videoPlayer.GetComponent<RawImage>();
+        if (raw != null)
+        {
+            raw.enabled = true;
+            raw.color = Color.white;
+        }
 
-        // 👉 然後載入下一個場景或返回劇情
-        // SceneManager.LoadScene("NextSceneName");
+        videoPlayer.clip = clip;
+        videoPlayer.Play();
+        Debug.Log($"▶️ Playing {clip.name}...");
+
+        // Wait up to 2 seconds for the first frame
+        float waitTimer = 0f;
+        while (!videoPlayer.isPlaying && waitTimer < 2f)
+        {
+            waitTimer += Time.deltaTime;
+            yield return null;
+        }
+        Debug.Log(videoPlayer.isPlaying ? "✅ Video started." : "⚠️ Video never started.");
+
+        while (videoPlayer.isPlaying)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                videoPlayer.Stop();
+                break;
+            }
+            yield return null;
+        }
+
+        Debug.Log("🎬 Video ended.");
+        yield return new WaitForSeconds(0.3f);
+        if (raw != null) raw.enabled = false;
     }
 
-    // --- 根據焦慮值決定 spawn 哪個 minigame ---
-    private GameObject SelectMinigameBasedOnAnxiety()
-    {
-        float anxiety = GameManager.Instance.anxiety;
-        GameObject chosen = null;
-        float bestMatch = -1;
 
+    // ====================  FINISH SEQUENCE  ====================
+    private void FinishAllMinigames()
+    {
+        Debug.Log($"✅ All {minigamesToPlay} minigames complete!");
+        GameManager.Instance.AddAnxiety(-10);
+        // Example: SceneManager.LoadScene("NextSceneName");
+    }
+
+    // ====================  SELECT MINIGAME  ====================
+    private MinigameOption SelectMinigameBasedOnAnxiety()
+    {
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("❌ GameManager.Instance is null!");
+            return null;
+        }
+
+        float anxiety = GameManager.Instance.anxiety;
+        Debug.Log($"🔍 Selecting minigame for anxiety = {anxiety}");
+
+        List<MinigameOption> validOptions = new List<MinigameOption>();
         foreach (var option in minigameOptions)
         {
-            if (anxiety >= option.anxietyThreshold && option.anxietyThreshold > bestMatch)
-            {
-                bestMatch = option.anxietyThreshold;
-                chosen = option.minigamePrefab;
-            }
+            Debug.Log($"Checking option range {option.minAnxiety}–{option.maxAnxiety}");
+            if (anxiety >= option.minAnxiety && anxiety < option.maxAnxiety)
+                validOptions.Add(option);
         }
-        return chosen;
+
+        if (validOptions.Count == 0)
+        {
+            Debug.LogWarning($"⚠ No minigame matches anxiety level {anxiety}. Defaulting to first option.");
+            return minigameOptions.Count > 0 ? minigameOptions[0] : null;
+        }
+
+        int index = Random.Range(0, validOptions.Count);
+        Debug.Log($"✅ Selected minigame index {index}");
+        return validOptions[index];
     }
 }
