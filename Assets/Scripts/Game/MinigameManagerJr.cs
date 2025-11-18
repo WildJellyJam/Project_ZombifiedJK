@@ -42,9 +42,9 @@ public class MinigameManagerJr : MonoBehaviour
     // ======================  LIFE CYCLE  =======================
     private IEnumerator Start()
     {
-        // Wait until GameManager exists
-        yield return new WaitUntil(() => GameManager.Instance != null);
-        Debug.Log($"🧠 GameManager found! Anxiety = {GameManager.Instance.anxiety}");
+        // Wait until newGameManager exists
+        yield return new WaitUntil(() => newGameManager.Instance != null && newGameManager.Instance.playerStats != null);
+        Debug.Log($"🧠 newGameManager found! Anxiety = {newGameManager.Instance.playerStats.anxiety}");
 
         StartMinigameSequence();
     }

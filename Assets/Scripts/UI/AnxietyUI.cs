@@ -14,14 +14,17 @@ public class AnxietyUI : MonoBehaviour
     void Start()
     {
         originalScale = anxietyText.transform.localScale;
-        previousAnxiety = GameManager.Instance.anxiety;
+        previousAnxiety = (newGameManager.Instance != null && newGameManager.Instance.playerStats != null)
+            ? newGameManager.Instance.playerStats.anxiety
+            : 0f;
     }
 
     void Update()
     {
-        int currentAnxiety = GameManager.Instance.anxiety; 
-        anxietyText.text = GameManager.Instance.anxiety.ToString();
+        if (newGameManager.Instance == null || newGameManager.Instance.playerStats == null) return;
 
+        float currentAnxiety = newGameManager.Instance.playerStats.anxiety;
+        anxietyText.text = Mathf.RoundToInt(currentAnxiety).ToString();
 
         // 如果焦慮值變動 → 播放跳動動畫
         if (Mathf.Abs(currentAnxiety - previousAnxiety) > 0.01f)

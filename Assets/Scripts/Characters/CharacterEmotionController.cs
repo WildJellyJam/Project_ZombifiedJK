@@ -35,7 +35,8 @@ public class CharacterEmotionController : MonoBehaviour
 
     void Update()
     {
-        int anxiety = GameManager.Instance.anxiety;
+        if (newGameManager.Instance == null || newGameManager.Instance.playerStats == null) return;
+        int anxiety = Mathf.RoundToInt(newGameManager.Instance.playerStats.anxiety);
 
         // If anxiety changed
         if (anxiety != previousAnxiety)
