@@ -29,8 +29,11 @@ public class CharacterEmotionController : MonoBehaviour
 
     void Start()
     {
-        previousAnxiety = GameManager.Instance.anxiety;
-        UpdateEmotion(GameManager.Instance.anxiety);
+        // 改為從 newGameManager.playerStats 讀取原始焦慮值（若尚未初始化則預設 0）
+        previousAnxiety = (newGameManager.Instance != null && newGameManager.Instance.playerStats != null)
+            ? Mathf.RoundToInt(newGameManager.Instance.playerStats.anxiety)
+            : 0;
+        UpdateEmotion(previousAnxiety);
     }
 
     void Update()

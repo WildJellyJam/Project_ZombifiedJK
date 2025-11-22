@@ -42,7 +42,7 @@ public class MinigameManagerJr : MonoBehaviour
     // ======================  LIFE CYCLE  =======================
     private IEnumerator Start()
     {
-        // Wait until newGameManager exists
+        // Wait until newGameManager exists and playerStats initialized
         yield return new WaitUntil(() => newGameManager.Instance != null && newGameManager.Instance.playerStats != null);
         Debug.Log($"🧠 newGameManager found! Anxiety = {newGameManager.Instance.playerStats.anxiety}");
 
@@ -115,7 +115,7 @@ public class MinigameManagerJr : MonoBehaviour
             activeMinigame = null;
             currentMinigameCount++;
         }
-        Debug.Log($"Spawned: {activeMinigame.name}, Has MinigameBase: {activeMinigame.GetComponent<MinigameBase>() != null}");
+        Debug.Log($"Spawned: {activeMinigame?.name}, Has MinigameBase: {activeMinigame != null && activeMinigame.GetComponent<MinigameBase>() != null}");
 
         FinishAllMinigames();
     }
@@ -174,20 +174,24 @@ public class MinigameManagerJr : MonoBehaviour
     private void FinishAllMinigames()
     {
         Debug.Log($"✅ All {minigamesToPlay} minigames complete!");
-        GameManager.Instance.AddAnxiety(-10);
+        if (newGameManager.Instance != null && newGameManager.Instance.playerStats != null)
+        {
+            // 使用 PlayerStats 的 UpdateAnxiety 以保持邊界與壞結局邏輯
+            newGameManager.Instance.playerStats.UpdateAnxiety(-10f);
+        }
         // Example: SceneManager.LoadScene("NextSceneName");
     }
 
     // ====================  SELECT MINIGAME  ====================
     private MinigameOption SelectMinigameBasedOnAnxiety()
     {
-        if (GameManager.Instance == null)
+        if (newGameManager.Instance == null || newGameManager.Instance.playerStats == null)
         {
-            Debug.LogError("❌ GameManager.Instance is null!");
+            Debug.LogError("❌ newGameManager.Instance or playerStats is null!");
             return null;
         }
 
-        float anxiety = GameManager.Instance.anxiety;
+        float anxiety = newGameManager.Instance.playerStats.anxiety;
         Debug.Log($"🔍 Selecting minigame for anxiety = {anxiety}");
 
         List<MinigameOption> validOptions = new List<MinigameOption>();

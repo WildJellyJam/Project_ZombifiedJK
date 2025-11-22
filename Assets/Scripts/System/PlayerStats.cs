@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using UnityEngine;
 // using UnityEditor.PackageManager;
 
 [System.Serializable]
@@ -21,7 +22,7 @@ public enum SpecialEvent
 }
 
 
-public class PlayerStats
+public class PlayerStats 
 {
     public float sanity; // 理智值
     public float socialEnergy; // 社交能量
