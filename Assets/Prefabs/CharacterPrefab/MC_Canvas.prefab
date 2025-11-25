@@ -88,10 +88,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18eee779c56c6344f9c2ac4c29b67773, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterRenderer: {fileID: 0}
-  normalSprite: {fileID: 0}
-  sadSprite: {fileID: 0}
+  characterImage: {fileID: 757188702929737768}
+  normalSprite: {fileID: 21300000, guid: 07d6ac8454274e84fa540b3ef6c9e115, type: 3}
+  sadSprite: {fileID: 21300000, guid: a560ba5f2e0626049a101d3a4927568c, type: 3}
   anxiousSprite: {fileID: 0}
+  effectSprite: {fileID: 21300000, guid: 15e55297cacebbf48a898730604376d7, type: 3}
+  comfortSprite: {fileID: 21300000, guid: f1b857083944da34db413658ce2d9b8c, type: 3}
   shakeIntensity: 0.1
   shakeDuration: 0.25
   scenesToAppearIn: []
