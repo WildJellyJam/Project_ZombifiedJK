@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
 
@@ -21,12 +20,12 @@ public class CharacterEmotionController : MonoBehaviour
     public Sprite comfortSprite;            // sprite used when anxiety goes down
 
     [Header("Shake Settings")]
-    public float shakeIntensity = 5f;       // UI uses pixels, so a bit bigger value
+    public float shakeIntensity = 5f;       // UI uses pixels
     public float shakeDuration = 0.25f;
 
-    [Header("Scene Settings")]
-    [Tooltip("Character will be visible in ALL scenes EXCEPT these.")]
-    public string[] scenesToHideIn;         // only hide in these scenes
+    [Header("Change Motion")]
+    [Tooltip("角色在觸發變化時，往下移動多少（UI 單位，負值代表往下）。")]
+    public float changeYOffset = -10f;      // how much lower during effect
 
     private RectTransform rectTransform;
     private Vector2 originalAnchoredPos;
@@ -56,18 +55,6 @@ public class CharacterEmotionController : MonoBehaviour
         {
             originalAnchoredPos = rectTransform.anchoredPosition;
         }
-
-        // subscribe to sceneLoaded once for this persistent instance
-        SceneManager.sceneLoaded += OnSceneLoaded;
-
-        // also apply visibility for the current scene (when starting the game)
-        ApplySceneVisibility(SceneManager.GetActiveScene().name);
-    }
-
-    void OnDestroy()
-    {
-        // unsubscribe when this instance is really destroyed
-        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void Start()
@@ -128,18 +115,28 @@ public class CharacterEmotionController : MonoBehaviour
         }
     }
 
+    // helper: set sprite + native size
+    void SetSpriteWithNativeSize(Sprite sprite)
+    {
+        if (characterImage == null) return;
+
+        characterImage.sprite = sprite;
+
+        if (sprite != null)
+        {
+            characterImage.SetNativeSize();
+        }
+    }
+
     // instantly set sprite from stats (used at Start)
     void ApplyEmotionInstant(int anxiety, int socialEnergy, int sanity)
     {
-        if (characterImage == null) return;
-        characterImage.sprite = GetEmotionSprite(anxiety, socialEnergy, sanity);
+        SetSpriteWithNativeSize(GetEmotionSprite(anxiety, socialEnergy, sanity));
     }
 
     // decide which sprite to use from all 3 stats
     Sprite GetEmotionSprite(int anxiety, int socialEnergy, int sanity)
     {
-        // tweak thresholds however you like
-
         // Very bad mental state: high anxiety or very low sanity
         if (anxiety >= 70 || sanity <= 30)
         {
@@ -173,42 +170,46 @@ public class CharacterEmotionController : MonoBehaviour
         if (anxietyDecreased && comfortSprite != null)
         {
             // feeling better → comfort animation
-            characterImage.sprite = comfortSprite;
+            SetSpriteWithNativeSize(comfortSprite);
         }
         else if (!anxietyDecreased && effectSprite != null)
         {
             // neutral or worse → effect sprite
-            characterImage.sprite = effectSprite;
+            SetSpriteWithNativeSize(effectSprite);
         }
         else
         {
             // fallback
-            characterImage.sprite = finalSprite;
+            SetSpriteWithNativeSize(finalSprite);
         }
-
-        float timer = 0f;
 
         if (rectTransform != null)
         {
+            float timer = 0f;
+
+            // always move lower when the effect starts
+            Vector2 loweredPos = originalAnchoredPos + new Vector2(0f, changeYOffset);
+            rectTransform.anchoredPosition = loweredPos;
+
             if (gotWorse)
             {
-                // 2a. If things got worse → do shake
+                // shake around the lowered position
                 while (timer < shakeDuration)
                 {
                     timer += Time.deltaTime;
                     rectTransform.anchoredPosition =
-                        originalAnchoredPos + (Vector2)Random.insideUnitCircle * shakeIntensity;
+                        loweredPos + (Vector2)Random.insideUnitCircle * shakeIntensity;
 
                     yield return null;
                 }
             }
             else
             {
-                // 2b. If neutral or better → just hold the comfort/effect sprite briefly
+                // stay lowered briefly, no shake
                 yield return new WaitForSeconds(0.15f);
             }
 
-            // reset position
+            // go back to original position
             rectTransform.anchoredPosition = originalAnchoredPos;
         }
         else
@@ -216,35 +217,9 @@ public class CharacterEmotionController : MonoBehaviour
             yield return new WaitForSeconds(0.15f);
         }
 
-        // 3. Switch to final emotion sprite based on new stats
-        characterImage.sprite = finalSprite;
+        // 3. Switch to final emotion sprite based on new stats (also native size)
+        SetSpriteWithNativeSize(finalSprite);
 
         changeRoutine = null;
-    }
-
-    // ---- Scene visibility logic ----
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        ApplySceneVisibility(scene.name);
-    }
-
-    private void ApplySceneVisibility(string sceneName)
-    {
-        // visible by default, only hide if listed in scenesToHideIn
-        bool shouldBeVisible = true;
-
-        if (scenesToHideIn != null)
-        {
-            foreach (string hideScene in scenesToHideIn)
-            {
-                if (!string.IsNullOrEmpty(hideScene) && sceneName == hideScene)
-                {
-                    shouldBeVisible = false;
-                    break;
-                }
-            }
-        }
-
-        gameObject.SetActive(shouldBeVisible);
     }
 }

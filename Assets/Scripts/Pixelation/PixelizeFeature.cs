@@ -1,5 +1,3 @@
-
-
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -18,16 +16,17 @@ public class PixelizeFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        customPass = new PixelizePass(settings);
+        // Pixelize disabled: do not create the pass anymore
+        customPass = null;
     }
+
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-
+        // if we're in Scene view, skip (same as before)
 #if UNITY_EDITOR
         if (renderingData.cameraData.isSceneViewCamera) return;
 #endif
-        renderer.EnqueuePass(customPass);
+        // Pixelize disabled: do not enqueue anything
+        if (customPass == null) return;
     }
 }
-
-
