@@ -17,6 +17,18 @@ public class RandomEventManager : MonoBehaviour
     [Tooltip("事件面板裡顯示文字的 TextMeshProUGUI（程式會自動抓 displayText）")]
     public TextMeshProUGUI cutScenePanelTextUI;
 
+    [Header("事件用的面板 Prefab")]
+    [Tooltip("一般事件用的預設面板")]
+    public GameObject defaultEventPanelPrefab;
+
+    [Tooltip("例如：收到貓咪影片事件用的面板")]
+    public GameObject catVideoPanelPrefab;
+
+    [Tooltip("例如：爸媽吵架事件用的面板")]
+    public GameObject parentsArguePanelPrefab;
+
+    // 你之後有新事件可以繼續加新的 public GameObject xxxPrefab;
+
 
     // 觸發隨機事件（基於隨機碼）
     public void TriggerRandomEvent()
@@ -45,7 +57,7 @@ public class RandomEventManager : MonoBehaviour
         }
 
         // 這裡示範用固定的 prefab 路徑
-        ShowEventPanel(eventName, "panelPrefabs/cutScenePanelPrefab");
+        ShowEventPanel(eventName, "panelPrefabs/StoreCheckout_Event");
 
         triggeredEvents.Add(eventName);
         Debug.Log($"觸發事件：{eventName}");
@@ -113,7 +125,6 @@ public class RandomEventManager : MonoBehaviour
 
         newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
     }
-
     public void TriggerRandomEvent_outside()
     {
         int randomCode = UnityEngine.Random.Range(200, 299);
@@ -134,6 +145,9 @@ public class RandomEventManager : MonoBehaviour
                 newGameManager.Instance.timeSystem.AddEventTime(1f);
                 break;
         }
+
+        // ✅ 在這裡加上 ShowEventPanel
+        ShowEventPanel(eventName, "panelPrefabs/StoreCheckout_Event");
 
         triggeredEvents.Add(eventName);
         Debug.Log($"觸發事件：{eventName}");
@@ -206,6 +220,11 @@ public class RandomEventManager : MonoBehaviour
                 newGameManager.Instance.playerStats.UpdateAnxiety(2f);
                 FindObjectOfType<gameUIManager>().ShowMessage("xxxxxxxxxxxx");
                 // newGameManager.Instance.timeSystem.AddEventTime(1f);
+                if (EventLogUI.Instance != null)
+                {
+                    // 這個事件想要一直顯示，直到你說「事件結束」才淡掉
+                    EventLogUI.Instance.ShowEventMessage("收到了訊息。", true);
+                }
                 break;
 
             case "BuyMilk":
@@ -215,12 +234,24 @@ public class RandomEventManager : MonoBehaviour
                 FindObjectOfType<gameUIManager>().ShowMilk();
                 newGameManager.Instance.timeSystem.AddEventTime(1f);
                 newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
+                if (EventLogUI.Instance != null)
+                {
+                    // 這個事件想要一直顯示，直到你說「事件結束」才淡掉
+                    EventLogUI.Instance.ShowEventMessage("你去便利商店買了牛奶。", true);
+                }
+                
                 break;
 
             case "ReceiveCatVideo":
                 Debug.Log("收到貓咪影片！");
                 newGameManager.Instance.playerStats.UpdateAnxiety(-5f);
                 ShowEventPanel("你收到了超可愛的貓咪影片，心情稍微放鬆了一點。", "panelPrefabs/cutScenePanelPrefab");
+                if (EventLogUI.Instance != null)
+                {
+                    // 這個事件想要一直顯示，直到你說「事件結束」才淡掉
+                    EventLogUI.Instance.ShowEventMessage("收到了訊息。", true);
+                }
+
                 break;
 
             case "ParentsArgue":
@@ -254,17 +285,15 @@ public class RandomEventManager : MonoBehaviour
 
         Debug.Log("find panel from Resources: " + path);
 
-        GameObject prefab = Resources.Load<GameObject>(path); // 路徑不含 Resources 與副檔名
+        GameObject prefab = Resources.Load<GameObject>(path);
         if (prefab == null)
         {
             Debug.LogError($"找不到 Prefab：{path}，請確認 Resources 下的路徑與檔名。");
             return;
         }
 
-        // 把 panel 生在指定的 CutSceneCanvas 之下
         cutScenePanel = Instantiate(prefab, cutSceneCanvas.transform, false);
 
-        // 找到文字物件（假設子物件叫 "displayText"）
         Transform textTransform = cutScenePanel.transform.Find("displayText");
         if (textTransform == null)
         {
@@ -281,9 +310,15 @@ public class RandomEventManager : MonoBehaviour
 
         Debug.Log("display dynamic panel");
         cutScenePanelTextUI.text = description;
-
         cutScenePanel.SetActive(true);
+
+        // ⬇️ 額外：在畫面一角用條狀文字顯示同樣的描述，事件結束前不會消失
+        if (EventLogUI.Instance != null)
+        {
+            EventLogUI.Instance.ShowEventMessage(description, true);
+        }
     }
+
 
     // 檢查事件是否已觸發
     public bool HasTriggered(string eventName)

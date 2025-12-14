@@ -710,10 +710,10 @@ MonoBehaviour:
     introVideo: {fileID: 32900000, guid: 8f919ea5ec5df2d469b43ebdfe0ae869, type: 3}
     winVideo: {fileID: 32900000, guid: 20620855ee59d214b929ed00164b3169, type: 3}
     loseVideo: {fileID: 32900000, guid: 8f919ea5ec5df2d469b43ebdfe0ae869, type: 3}
-  - minAnxiety: 0
+  - minAnxiety: 30
     maxAnxiety: 60
-    minigamePrefab: {fileID: 4270468455100675528, guid: a6a444d72e9a3ed46be374dfa6f47809, type: 3}
-    introVideo: {fileID: 32900000, guid: 8f919ea5ec5df2d469b43ebdfe0ae869, type: 3}
+    minigamePrefab: {fileID: 371035592267714287, guid: 079bae00a3283c543aae8b4a324e7421, type: 3}
+    introVideo: {fileID: 32900000, guid: e41c1c6f5103131429b99eda7d982ce6, type: 3}
     winVideo: {fileID: 32900000, guid: 20620855ee59d214b929ed00164b3169, type: 3}
     loseVideo: {fileID: 32900000, guid: 8f919ea5ec5df2d469b43ebdfe0ae869, type: 3}
 --- !u!1 &1676520219

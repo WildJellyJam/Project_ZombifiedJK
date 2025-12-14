@@ -1,144 +1,158 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Pushes the eraser with an impulse, spins based on velocity, and
+/// shows a cursor-following UI indicator that fills while hovering.
+/// Requires: Rigidbody2D + a Collider2D on this GameObject.
+/// </summary>
 public class Ereaser_Hover : MinigameBase
 {
     [Header("Movement & Physics")]
-    public float forceValue = 5f;          // 推動橡皮擦的初始力（X 方向）
-    public float rotateMultiplier = -5f;   // 根據速度轉動的倍率
+    public float forceValue = 5f;          // initial X impulse
+    public float rotateMultiplier = -5f;   // turns velocity.x into angularVelocity
+    public float minBounceDotLimit = -0.2f; // optional: guard for very shallow bounces
 
-    [Header("Hover Win Settings")]
-    public float requiredHoverTime = 3f;   // 滑鼠需要停留多久才算贏
+    [Header("Hover Win")]
+    public float requiredHoverTime = 3f;   // seconds to win by hovering
 
-    [Header("Hover Circle FX")]
-    public Transform hoverCircle;          // 指向 child 物件 HoverCircle
-    public float circleMinScale = 0.3f;
-    public float circleMaxScale = 1.2f;
-    public float circlePulseSpeed = 2f;    // 放大速度
-    public float circleFadeOutSpeed = 5f;  // 離開時淡出的速度
+    [Header("UI Indicator")]
+    public HoverIndicatorUI indicator;     // assign the HoverIndicatorUI in Overlay Canvas
+    public float indicatorDiameterPx = 120f;
 
-    private float hoverTime = 0f;
-    private bool isHovering = false;
-    private Rigidbody2D rb;
-    private SpriteRenderer hoverCircleRenderer;
+    float _hoverTime = 0f;
+    bool _isHovering = false;
+    float _prevProgress = 0f;
+
+    Rigidbody2D _rb;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        _rb = GetComponent<Rigidbody2D>();
 
-        if (rb != null)
+        if (_rb)
         {
-            // 一開始給一個 X 方向的 impulse
-            rb.AddForce(new Vector2(forceValue, 0f), ForceMode2D.Impulse);
-            Debug.Log("Adding force to X value");
+            // Give an initial impulse so it moves.
+            _rb.AddForce(new Vector2(forceValue, 0f), ForceMode2D.Impulse);
+            // Let physics rotate it (make sure Freeze Rotation Z is NOT checked).
+            Debug.Log("[Ereaser_Hover] Initial impulse added.");
         }
 
-        if (hoverCircle != null)
-        {
-            hoverCircleRenderer = hoverCircle.GetComponent<SpriteRenderer>();
+        // Prepare indicator
+        if (!indicator && HoverIndicatorUI.Instance)
+            indicator = HoverIndicatorUI.Instance;
 
-            // 一開始把圓圈縮到最小 & 完全透明
-            hoverCircle.localScale = Vector3.zero;
-            if (hoverCircleRenderer != null)
-            {
-                var c = hoverCircleRenderer.color;
-                c.a = 0f;
-                hoverCircleRenderer.color = c;
-            }
+        if (indicator)
+        {
+            indicator.SetTargetDiameter(indicatorDiameterPx);
+            indicator.SetVisible(false, true);  // hide & reset
         }
+        _prevProgress = 0f;
     }
 
     void FixedUpdate()
     {
-        if (rb != null)
+        if (_rb)
         {
-            // 讓橡皮擦依照 X 速度自動旋轉（像滾動一樣）
-            rb.angularVelocity = rb.velocity.x * rotateMultiplier;
+            // Make it spin like a rolling object based on horizontal speed
+            _rb.angularVelocity = _rb.velocity.x * rotateMultiplier;
         }
     }
 
     void Update()
     {
-        // Hover 計時 → 勝利判定
-        if (isHovering)
+        // 1) Hover timing / win condition
+        if (_isHovering)
         {
-            hoverTime += Time.deltaTime;
+            _hoverTime += Time.deltaTime;
+            float t = Mathf.Clamp01(_hoverTime / requiredHoverTime);
 
-            if (hoverTime >= requiredHoverTime)
+            // 2) Update indicator position + fill (cursor-following)
+            UpdateIndicator(t);
+
+            // Debug only when the circle actually grows (avoid spam)
+            if (t - _prevProgress > 0.02f)
             {
-                Debug.Log("Hover complete → PLAYER WINS!");
-
-                EndMinigame(true);   // ✅ 通知 Minigame Manager 玩家贏了
-
-                isHovering = false;
-                hoverTime = 0f;
+                Debug.Log($"[Ereaser_Hover] Indicator growing. progress={t:0.00}");
+                _prevProgress = t;
             }
-        }
 
-        // 處理 hover 圓圈特效
-        HandleHoverCircleFX();
-    }
+            if (_hoverTime >= requiredHoverTime)
+            {
+                Debug.Log("[Ereaser_Hover] Hover complete → PLAYER WINS!");
+                EndMinigame(true);
 
-    private void HandleHoverCircleFX()
-    {
-        if (hoverCircle == null || hoverCircleRenderer == null)
-            return;
-
-        Color color = hoverCircleRenderer.color;
-
-        if (isHovering)
-        {
-            // 讓圓圈在 min ~ max 之間放大縮小（PingPong）
-            float t = Mathf.PingPong(Time.time * circlePulseSpeed, 1f);
-            float scale = Mathf.Lerp(circleMinScale, circleMaxScale, t);
-            hoverCircle.localScale = new Vector3(scale, scale, 1f);
-
-            // 讓它有一點透明度（固定值或也可以跟 t 連動）
-            color.a = Mathf.Lerp(color.a, 0.8f, Time.deltaTime * 10f);
-            hoverCircleRenderer.color = color;
+                _isHovering = false;
+                _hoverTime = 0f;
+                HideIndicator();
+            }
         }
         else
         {
-            // 不在 hover 時，慢慢縮小 & 淡出
-            hoverCircle.localScale = Vector3.Lerp(
-                hoverCircle.localScale,
-                Vector3.zero,
-                Time.deltaTime * circleFadeOutSpeed
-            );
-
-            color.a = Mathf.Lerp(color.a, 0f, Time.deltaTime * circleFadeOutSpeed);
-            hoverCircleRenderer.color = color;
+            // Not hovering → keep indicator hidden but follow cursor if you prefer (optional)
+            HideIndicator();
+            _prevProgress = 0f;
         }
     }
 
-    private void OnMouseEnter()
+    // --- Indicator control ---
+
+    void UpdateIndicator(float progress01)
     {
-        isHovering = true;
-        hoverTime = 0f;
-        Debug.Log("Mouse entered eraser");
+        if (!indicator) return;
+
+        // show & follow mouse every frame while hovering
+        indicator.SetVisible(true);
+        indicator.SetTargetDiameter(indicatorDiameterPx);
+        indicator.MoveToScreenPosition(Input.mousePosition);
+        indicator.SetProgress(progress01);
     }
 
-    private void OnMouseExit()
+    void HideIndicator()
     {
-        isHovering = false;
-        hoverTime = 0f;
-        Debug.Log("Mouse exited eraser");
+        if (!indicator) return;
+        indicator.SetVisible(false, true); // hide and reset fill
     }
 
-    // （可選）如果你想用程式強化彈跳，可以解開註解
-    /*
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (rb == null) return;
+    // --- Mouse events on the eraser object ---
 
-        Vector2 v = rb.velocity;
-        if (collision.contactCount > 0)
+    void OnMouseEnter()
+    {
+        _isHovering = true;
+        _hoverTime = 0f;
+        _prevProgress = 0f;
+        if (indicator)
         {
-            Vector2 n = collision.contacts[0].normal;
+            indicator.SetVisible(true, true); // show + reset
+            indicator.MoveToScreenPosition(Input.mousePosition);
+        }
+        Debug.Log("[Ereaser_Hover] Mouse entered eraser.");
+    }
+
+    void OnMouseExit()
+    {
+        _isHovering = false;
+        _hoverTime = 0f;
+        HideIndicator();
+        Debug.Log("[Ereaser_Hover] Mouse exited eraser.");
+    }
+
+    // --- Optional bounce helper if you feel it's not bouncing enough on the ground ---
+    // Use this if you don't want to rely solely on a PhysicsMaterial2D.
+    // Make sure your ground has a Collider2D.
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if (_rb == null || col.contactCount == 0) return;
+
+        // If you want strict physics bounciness, prefer assigning a PhysicsMaterial2D with Bounciness > 0.
+        // This code just ensures we don't get "sticky" stops on flat ground.
+        Vector2 v = _rb.velocity;
+        Vector2 n = col.contacts[0].normal;
+
+        // Only reflect if we're meaningfully hitting the surface.
+        if (Vector2.Dot(v.normalized, -n) > -minBounceDotLimit)
+        {
             Vector2 reflected = Vector2.Reflect(v, n);
-            rb.velocity = reflected;
+            _rb.velocity = reflected;
         }
     }
-    */
 }

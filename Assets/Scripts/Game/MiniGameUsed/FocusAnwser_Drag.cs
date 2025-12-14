@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-// Same base as your other minigames
 public class FocusAnwser_Drag : MinigameBase
 {
     [Header("Drag Settings")]
@@ -13,47 +12,44 @@ public class FocusAnwser_Drag : MinigameBase
     [Range(0f, 2f)]
     [Tooltip("0 = calm, higher = more shaky")]
     public float anxietyIntensity = 0.5f;
-    [Tooltip("How fast the wobble moves")]
+    [Tooltip("How fast the wobble noise moves")]
     public float anxietyNoiseSpeed = 2f;
     [Tooltip("World-space wobble distance at intensity=1")]
     public float wobbleDistance = 0.5f;
 
     [Header("Circle Overlap Settings")]
-    [Tooltip("Center-of-screen invisible circle (child of camera)")]
+    [Tooltip("Invisible circle at screen center (auto-created under MainCamera)")]
     public Transform screenCircle;
     public float screenCircleRadius = 1.0f;
 
-    [Tooltip("Target circle somewhere on the background image")]
+    [Tooltip("Goal circle somewhere on the background image")]
     public Transform targetCircle;
     public float targetCircleRadius = 1.0f;
 
     [Tooltip("How many seconds circles must overlap to win")]
     public float requiredOverlapTime = 2f;
 
-    [Header("Blur Overlay (UI)")]
-    public CanvasGroup blurOverlay;
-    [Tooltip("How fast blur alpha changes")]
-    public float blurFadeSpeed = 5f;
-    [Tooltip("Distance at which blur is at MAX strength")]
-    public float maxBlurDistance = 10f;
-    [Range(0f, 1f)]
-    [Tooltip("Minimum blur alpha when exactly on the goal (0 = fully clear)")]
-    public float minBlurAlphaAtGoal = 0f;
+    [Header("Effects Distance Mapping")]
+    [Tooltip("Distance at which effects are at 'max' strength")]
+    public float maxEffectDistance = 10f;
 
-    [Header("Vignette Overlay (UI)")]
+    [Header("Pixelation Effect (Optional: low → high quality)")]
+    public PixelationController pixelation;  // safe if null
+
+    [Header("Vignette Effect (Optional)")]
     [Tooltip("CanvasGroup of a fullscreen vignette image (dark corners)")]
     public CanvasGroup vignetteOverlay;
     [Tooltip("How fast vignette alpha changes")]
     public float vignetteFadeSpeed = 5f;
     [Range(0f, 1f)]
-    [Tooltip("Alpha when exactly on the goal (0 = no vignette)")]
+    [Tooltip("Vignette alpha when exactly on the goal")]
     public float vignetteAlphaAtGoal = 0.1f;
     [Range(0f, 1f)]
-    [Tooltip("Alpha when very far (panic state)")]
+    [Tooltip("Vignette alpha when very far (panic)")]
     public float vignetteAlphaAtFar = 0.9f;
 
-    [Header("Nausea Camera Effect")]
-    public NauseaCameraEffect nauseaEffect;
+    [Header("Nausea Camera Effect (Optional)")]
+    public NauseaCameraEffect nauseaEffect;  // safe if null
     [Range(0f, 1f)]
     [Tooltip("Nausea when exactly on target (0 = calm)")]
     public float nauseaAtGoal = 0.2f;
@@ -83,17 +79,72 @@ public class FocusAnwser_Drag : MinigameBase
 
     private void Awake()
     {
+        // 1. Find main camera
         if (mainCamera == null)
             mainCamera = Camera.main;
 
         if (mainCamera == null)
+        {
             Debug.LogError("[FocusAnwser_Drag] No camera assigned and no MainCamera found!");
+            return;
+        }
 
+        // 2. Auto-setup screenCircle
         if (screenCircle == null)
-            Debug.LogWarning("[FocusAnwser_Drag] screenCircle is NULL. Assign a child of the camera as screen circle.");
+        {
+            // Try to find existing ScreenCircle under camera
+            Transform found = mainCamera.transform.Find("ScreenCircle");
+            if (found != null)
+            {
+                screenCircle = found;
+            }
+            else
+            {
+                // Create a new one at screen center on same Z as background
+                GameObject go = new GameObject("ScreenCircle");
+                go.transform.SetParent(mainCamera.transform);
+
+                float bgZ = transform.position.z;
+                float camZ = mainCamera.transform.position.z;
+                float localZ = bgZ - camZ;
+
+                go.transform.localPosition = new Vector3(0f, 0f, localZ);
+                go.transform.localRotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+
+                screenCircle = go.transform;
+            }
+        }
+
+        // 3. Auto-get nausea effect if not set
+        if (nauseaEffect == null)
+        {
+            nauseaEffect = mainCamera.GetComponent<NauseaCameraEffect>();
+        }
 
         if (targetCircle == null)
+        {
             Debug.LogWarning("[FocusAnwser_Drag] targetCircle is NULL. Assign a target circle on the background.");
+        }
+    }
+
+    private void OnEnable()
+    {
+        // Enable nausea when this minigame is active
+        if (nauseaEffect != null)
+        {
+            nauseaEffect.SetEnabled(true);
+            nauseaEffect.SetIntensity(0f); // start calm-ish
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Turn off nausea when minigame closes / prefab disabled
+        if (nauseaEffect != null)
+        {
+            nauseaEffect.SetEnabled(false);
+        }
     }
 
     private void OnMouseDown()
@@ -122,16 +173,22 @@ public class FocusAnwser_Drag : MinigameBase
         HandleScreenEffects();
     }
 
-    // ----- 1. Drag + wobble + bounds -----
+    // ----- 1. Drag + always-on wobble + bounds -----
     private void HandleDrag()
     {
-        if (!isDragging || hasSucceeded || mainCamera == null) return;
+        if (hasSucceeded || mainCamera == null) return;
 
-        // Base drag to mouse
-        Vector3 mouseWorld = GetMouseWorldPos();
-        Vector3 baseTarget = mouseWorld + dragOffset;
+        // Base target = current position (so it wobbles in place)
+        Vector3 baseTarget = transform.position;
 
-        // Wobble
+        // If dragging, move base target with mouse
+        if (isDragging)
+        {
+            Vector3 mouseWorld = GetMouseWorldPos();
+            baseTarget = mouseWorld + dragOffset;
+        }
+
+        // Wobble (always, even when not dragging)
         float noiseX = (Mathf.PerlinNoise(Time.time * anxietyNoiseSpeed, 0f) - 0.5f) * 2f;
         float noiseY = (Mathf.PerlinNoise(0f, Time.time * anxietyNoiseSpeed) - 0.5f) * 2f;
         Vector3 anxietyOffset = new Vector3(noiseX, noiseY, 0f) * anxietyIntensity * wobbleDistance;
@@ -141,6 +198,7 @@ public class FocusAnwser_Drag : MinigameBase
         if (lockZ)
             targetPos.z = transform.position.z;
 
+        // Clamp inside bounds
         if (useDragBounds)
         {
             targetPos.x = Mathf.Clamp(targetPos.x, boundsMin.x, boundsMax.x);
@@ -159,7 +217,7 @@ public class FocusAnwser_Drag : MinigameBase
     {
         if (hasSucceeded)
         {
-            // Freeze effects distance at goal
+            // lock effects at goal
             lastDistanceToTarget = 0f;
             return;
         }
@@ -167,7 +225,7 @@ public class FocusAnwser_Drag : MinigameBase
         if (screenCircle == null || targetCircle == null)
         {
             // If not set up, treat as far → max effects
-            lastDistanceToTarget = maxBlurDistance;
+            lastDistanceToTarget = maxEffectDistance;
             isOverlappingNow = false;
             return;
         }
@@ -192,7 +250,8 @@ public class FocusAnwser_Drag : MinigameBase
 
                 Debug.Log($"[FocusAnwser_Drag] Overlap complete → PLAYER WINS! OverlapTime = {overlapTimer:F2}s");
 
-                EndMinigame(true); // notify MinigameBase like Ereaser_Hover
+                // Same as Ereaser_Hover: notify minigame system
+                EndMinigame(true);
             }
         }
         else
@@ -206,27 +265,22 @@ public class FocusAnwser_Drag : MinigameBase
         wasOverlappingLastFrame = isOverlappingNow;
     }
 
-    // ----- 3. Blur + Nausea + Vignette from distance -----
+    // ----- 3. Pixelation + vignette + nausea from distance -----
     private void HandleScreenEffects()
     {
-        // Remap distance → 0..1
-        float d = Mathf.Clamp(lastDistanceToTarget, 0f, maxBlurDistance);
-        float t = Mathf.InverseLerp(0f, maxBlurDistance, d);
-        // t = 0 → exactly on goal
-        // t = 1 → far (maxDistance or beyond)
+        // Distance → 0..1
+        float d = Mathf.Clamp(lastDistanceToTarget, 0f, maxEffectDistance);
+        float t = Mathf.InverseLerp(0f, maxEffectDistance, d);
+        // t = 0 → exactly on goal (clear / calm)
+        // t = 1 → far (max effect)
 
-        // --- Blur alpha (strong far, weak near) ---
-        if (blurOverlay != null)
+        // Pixelation (low quality far → clear near)
+        if (pixelation != null)
         {
-            float targetAlpha = Mathf.Lerp(minBlurAlphaAtGoal, 1f, t);
-            blurOverlay.alpha = Mathf.Lerp(
-                blurOverlay.alpha,
-                targetAlpha,
-                blurFadeSpeed * Time.deltaTime
-            );
+            pixelation.SetIntensity(t); // safe if its material is null
         }
 
-        // --- Vignette alpha (dark corners far, lighter near) ---
+        // Vignette (dark corners far → light near)
         if (vignetteOverlay != null)
         {
             float targetVignetteAlpha = Mathf.Lerp(vignetteAlphaAtGoal, vignetteAlphaAtFar, t);
@@ -237,7 +291,7 @@ public class FocusAnwser_Drag : MinigameBase
             );
         }
 
-        // --- Nausea intensity (strong far, calmer near) ---
+        // Nausea (strong far → calm near)
         if (nauseaEffect != null)
         {
             float nausea = Mathf.Lerp(nauseaAtGoal, nauseaAtFar, t);

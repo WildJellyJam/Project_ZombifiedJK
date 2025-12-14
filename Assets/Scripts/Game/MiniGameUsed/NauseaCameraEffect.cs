@@ -1,30 +1,27 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 /// <summary>
-/// Small wobble / nausea camera effect.
-/// Add this to your Main Camera.
-/// Use SetIntensity(0~1) from another script to control how strong it is.
+/// Nausea / nervous camera effect:
+/// - Small position wobble
+/// - Subtle zoom "breathing"
+/// NO rotation.
+/// Attach to Main Camera.
+/// Control it with SetEnabled() and SetIntensity() from other scripts.
 /// </summary>
 public class NauseaCameraEffect : MonoBehaviour
 {
     [Header("Toggle")]
-    public bool effectEnabled = true;
+    public bool effectEnabled = false;   // default off
 
     [Header("Overall Intensity (0~1)")]
     [Range(0f, 1f)]
-    public float intensity = 0.5f;
+    public float intensity = 0f;        // default 0
 
     [Header("Position Shake")]
     [Tooltip("Max world-space offset on X/Y when intensity = 1")]
     public float positionAmplitude = 0.2f;
     [Tooltip("How fast the position noise moves")]
     public float positionFrequency = 1.5f;
-
-    [Header("Rotation Shake")]
-    [Tooltip("Max Z rotation (degrees) when intensity = 1")]
-    public float rotationAmplitude = 3f;
-    [Tooltip("How fast it tilts left/right")]
-    public float rotationFrequency = 1.2f;
 
     [Header("Subtle Zoom Warp (Optional)")]
     [Tooltip("Max extra orthographic size or FOV when intensity = 1")]
@@ -41,7 +38,7 @@ public class NauseaCameraEffect : MonoBehaviour
     private void Start()
     {
         originalLocalPos = transform.localPosition;
-        originalLocalRot = transform.localRotation;
+        originalLocalRot = transform.localRotation; // keep for safety reset
 
         cam = GetComponent<Camera>();
         if (cam != null)
@@ -71,15 +68,11 @@ public class NauseaCameraEffect : MonoBehaviour
                             * positionAmplitude
                             * intensity;
 
-        // --- Rotation wobble (sin wave on Z) ---
-        float rotZ = Mathf.Sin(t * rotationFrequency * Mathf.PI * 2f)
-                     * rotationAmplitude
-                     * intensity;
-
         transform.localPosition = originalLocalPos + posOffset;
-        transform.localRotation = originalLocalRot * Quaternion.Euler(0f, 0f, rotZ);
+        // âŒ NO rotation change â€“ we keep originalLocalRot
+        transform.localRotation = originalLocalRot;
 
-        // --- Subtle zoom / ¡§breathing¡¨ warp ---
+        // --- Subtle zoom / â€œbreathingâ€ warp ---
         if (cam != null && zoomAmplitude > 0f)
         {
             float zoomOffset = Mathf.Sin(t * zoomFrequency * Mathf.PI * 2f)
@@ -107,11 +100,20 @@ public class NauseaCameraEffect : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 0 = no effect, 1 = full nausea.
-    /// </summary>
+    /// <summary>0 = no effect, 1 = full nausea.</summary>
     public void SetIntensity(float value)
     {
         intensity = Mathf.Clamp01(value);
+    }
+
+    /// <summary>Enable/disable from other scripts (like your minigame).</summary>
+    public void SetEnabled(bool value)
+    {
+        effectEnabled = value;
+        if (!value)
+        {
+            intensity = 0f;
+            ResetTransform();
+        }
     }
 }
