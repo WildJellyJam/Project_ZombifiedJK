@@ -5,6 +5,7 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
+
 public class gameUIManager : MonoBehaviour
 {
 
@@ -70,7 +71,11 @@ public class gameUIManager : MonoBehaviour
             }
             // displayCutScenePanel(msg);
             if (newGameManager.Instance.eventManager != null)
-                newGameManager.Instance.eventManager.ShowEventPanel(msg, "panelPrefabs/cutScenePanelPrefab");
+                newGameManager.Instance.eventManager.ShowEventPanel(
+    msg,
+    newGameManager.Instance.eventManager.defaultEventPanelPrefab
+);
+
         }
         else
         {
@@ -97,6 +102,12 @@ public class gameUIManager : MonoBehaviour
         TogglePausePanel();
         isPaused = false;
         pausePanel.SetActive(false);
+    }
+
+    public void ExitGame()
+    {
+        Application.Quit();
+        
     }
 
     private void TogglePausePanel()

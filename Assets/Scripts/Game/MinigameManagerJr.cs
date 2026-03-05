@@ -22,6 +22,7 @@ public class MinigameOption
     public VideoClip introVideo;
     public VideoClip winVideo;
     public VideoClip loseVideo;
+    public float timeLimitSeconds = 15f;
 }
 
 public class MinigameManagerJr : MonoBehaviour
@@ -60,62 +61,70 @@ public class MinigameManagerJr : MonoBehaviour
     private IEnumerator PlayMinigameFlow()
     {
         Debug.Log("▶️ Starting PlayMinigameFlow()");
+        currentMinigameCount = 0;
 
         while (currentMinigameCount < minigamesToPlay)
         {
             Debug.Log($"--- Round {currentMinigameCount + 1} ---");
 
-            // 1️⃣ Select minigame
+            // 1) Select option
             MinigameOption option = SelectMinigameBasedOnAnxiety();
-
             if (option == null)
             {
-                Debug.LogError("❌ SelectMinigameBasedOnAnxiety() returned null!");
+                Debug.LogError("❌ No MinigameOption returned!");
                 yield break;
             }
 
-            Debug.Log($"✅ Selected minigame prefab: {(option.minigamePrefab ? option.minigamePrefab.name : "NULL")}");
-            Debug.Log($"🎬 Intro clip: {(option.introVideo ? option.introVideo.name : "none")}");
-
-            // 2️⃣ Play intro
-            if (option.introVideo != null)
-                yield return PlayCutscene(option.introVideo);
-
-            // 3️⃣ Instantiate
             if (option.minigamePrefab == null)
             {
                 Debug.LogError("❌ option.minigamePrefab is NULL in Inspector!");
                 yield break;
             }
 
-            activeMinigame = Instantiate(option.minigamePrefab);
-            MinigameBase minigame = activeMinigame.GetComponentInChildren<MinigameBase>();
+            // 2) Intro video
+            if (option.introVideo != null)
+                yield return PlayCutscene(option.introVideo);
 
+            // 3) Instantiate
+            activeMinigame = Instantiate(option.minigamePrefab);
+
+            // ✅ IMPORTANT: search in children too
+            MinigameBase minigame = activeMinigame.GetComponentInChildren<MinigameBase>(true);
             if (minigame == null)
             {
-                Debug.LogError($"❌ The prefab '{option.minigamePrefab.name}' has NO MinigameBase script!");
+                Debug.LogError($"❌ The prefab '{option.minigamePrefab.name}' has NO MinigameBase (on root or children).");
+                Destroy(activeMinigame);
+                activeMinigame = null;
                 yield break;
+            }
+
+            // ✅ If this minigame supports timer, set time limit from option
+            TimedMinigameBase timed = activeMinigame.GetComponentInChildren<TimedMinigameBase>(true);
+            if (timed != null)
+            {
+                timed.SetTimeLimit(option.timeLimitSeconds);
             }
 
             bool? result = null;
             minigame.OnMinigameEnd += (bool won) => { result = won; };
 
+            // Wait for minigame to call EndMinigame(...)
             yield return new WaitUntil(() => result.HasValue);
 
-            Debug.Log($"🏁 Minigame finished, result = {result}");
+            Debug.Log($"🏁 Minigame finished, result = {result.Value}");
 
-            // 4️⃣ Play win / lose
+            // 4) Win / Lose video
             if (result.Value && option.winVideo != null)
                 yield return PlayCutscene(option.winVideo);
             else if (!result.Value && option.loseVideo != null)
                 yield return PlayCutscene(option.loseVideo);
 
-            // 5️⃣ Clean up
+            // 5) Cleanup
             Destroy(activeMinigame);
             activeMinigame = null;
+
             currentMinigameCount++;
         }
-        Debug.Log($"Spawned: {activeMinigame?.name}, Has MinigameBase: {activeMinigame != null && activeMinigame.GetComponent<MinigameBase>() != null}");
 
         FinishAllMinigames();
     }

@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class CharacterSceneSpawner : MonoBehaviour
 {
     public static CharacterSceneSpawner Instance;
+
+    private const string AUTO_CANVAS_NAME = "AutoCanvas_CharacterUI";
 
     [Header("Character UI Settings")]
     [Tooltip("這裡放 UI 用的角色 Prefab（建議：Prefab root 是一個含有 RectTransform + Image/TMP 的 UI 物件）")]
@@ -14,7 +17,7 @@ public class CharacterSceneSpawner : MonoBehaviour
     public string[] scenesToHideCharacter;
 
     [Header("UI Parent")]
-    [Tooltip("角色 UI 要掛在哪個 Canvas 或 Panel 底下。\n建議：這個物件本身也標成 DontDestroyOnLoad，當作 Global UI。")]
+    [Tooltip("不用填也可以：會永遠自動使用/生成名為 AutoCanvas_CharacterUI 的 Canvas（sortingOrder=5）")]
     public RectTransform uiParent;
 
     private GameObject spawnedCharacter;
@@ -93,30 +96,57 @@ public class CharacterSceneSpawner : MonoBehaviour
             return;
         }
 
-        // 確保有 UI Parent
+        // ✅ 永遠只用你自己的 AutoCanvas（找不到就生成）
+        EnsureAutoCanvasParent();
+
         if (uiParent == null)
         {
-            // 自動找場景中的第一個 Canvas 當父物件（RectTransform）
-            Canvas canvas = FindObjectOfType<Canvas>();
-            if (canvas != null)
-            {
-                uiParent = canvas.transform as RectTransform;
-            }
-            else
-            {
-                Debug.LogError("❌ CharacterSceneSpawner：場景裡找不到 Canvas，也沒有指定 uiParent。");
-                return;
-            }
+            Debug.LogError("❌ CharacterSceneSpawner：AutoCanvas 生成/取得失敗，uiParent 仍為 null。");
+            return;
         }
-
-        // 🔹 建議：這個 uiParent 最好是你專門做的一個 Global UI Panel
-        //        並在它身上也呼叫 DontDestroyOnLoad，這樣角色 UI 才能跟著跨場景存在。
-        //        如果你確定 uiParent 是專屬 Global UI，可以在這裡加上：
-        //        DontDestroyOnLoad(uiParent.gameObject);
 
         // ✅ 只 Instantiate 一次，之後都只 SetActive 開關，不再 Destroy/重生
         spawnedCharacter = Instantiate(characterPrefab, uiParent, false);
-        // 如果你也希望角色本身在 DontDestroyOnLoad 裡：
+
+        // 如果你希望角色本身也跨場景存在，可以打開：
         // DontDestroyOnLoad(spawnedCharacter);
+    }
+
+    /// <summary>
+    /// 只使用/生成你自己的 Canvas：AutoCanvas_CharacterUI，並強制 sortingOrder=5
+    /// </summary>
+    private void EnsureAutoCanvasParent()
+    {
+        GameObject go = GameObject.Find(AUTO_CANVAS_NAME);
+        Canvas canvas = null;
+
+        if (go != null)
+            canvas = go.GetComponent<Canvas>();
+
+        // 沒有就生成
+        if (canvas == null)
+        {
+            go = new GameObject(AUTO_CANVAS_NAME);
+            canvas = go.AddComponent<Canvas>();
+            go.AddComponent<CanvasScaler>();
+            go.AddComponent<GraphicRaycaster>();
+
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            // sortingOrder 要生效必須 overrideSorting
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 24;
+
+            // ✅ 讓這個 Canvas 跨場景存在（你說你要「都用我生成的」）
+            DontDestroyOnLoad(go);
+        }
+        else
+        {
+            // ✅ 就算已存在，也強制保持你要的設定
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 5;
+        }
+
+        uiParent = canvas.transform as RectTransform;
     }
 }
