@@ -272,7 +272,12 @@ public class EndingManager : MonoBehaviour
         TriggerEndingUI(normalEnding, true);
     }
 
+    public void Debug_SetAnxiety0() { debugAnxiety = 0; Debug.Log("[Debug] anxiety=0"); }
+    public void Debug_SetAnxiety50() { debugAnxiety = 50; Debug.Log("[Debug] anxiety=50"); }
+    public void Debug_SetAnxiety100() { debugAnxiety = 100; Debug.Log("[Debug] anxiety=100"); }
     public void Debug_TriggerGood()
+
+
     {
         if (!CanUseDebugTriggers()) return;
         TriggerEndingUI(goodEnding, true);
@@ -457,9 +462,10 @@ public class EndingManager : MonoBehaviour
     // =========================================================
     private int GetAnxiety()
     {
-        // TODO: 改成讀你的真正 anxiety 來源，例如：
-        // return GameManager.Instance.anxiety;
-        return debugAnxiety;
+        if (newGameManager.Instance != null && newGameManager.Instance.playerStats != null)
+            return Mathf.RoundToInt(newGameManager.Instance.playerStats.anxiety);
+
+        return debugAnxiety; // 讓你沒接好時仍可 debug
     }
 
     private int GetCurrentDay()

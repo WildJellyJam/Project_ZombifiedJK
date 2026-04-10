@@ -1,32 +1,23 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-public enum EndingTheme
-{
-    Bad,
-    Normal,
-    Good
-}
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(menuName = "Game/Ending Sequence", fileName = "EndingSequence")]
 public class EndingSequence : ScriptableObject
 {
-    [Header("ID")]
     public string endingId = "Ending_A";
 
-    [Header("Theme (切換不同UI畫面)")]
-    public EndingTheme theme = EndingTheme.Normal;
-
-    [Header("Start Image (保證每個結局至少換一次圖)")]
-    [Tooltip("一進結局時會先把 TopImage 換成這張圖，即使第一句沒有勾 changeImage。")]
+    [Header("Start Image (建議必填：保證至少換一次圖)")]
     public Sprite startImage;
 
-    [Header("Lines")]
-    public List<EndingLine> lines = new List<EndingLine>();
+    [FormerlySerializedAs("lines")]
+    public List<EndingLine> steps = new List<EndingLine>();
+
+    // （可選）如果你其它地方還用到 lines 這名字，給它一個相容讀取用的 alias
+    public List<EndingLine> lines => steps;
 
     [Header("After Finish")]
-    [Tooltip("播完結局要回去的場景名稱，例如 MainMenu")]
     public string backToSceneName = "MainMenu";
 }
 
@@ -34,7 +25,6 @@ public class EndingSequence : ScriptableObject
 public class EndingLine
 {
     public string speaker;
-
     [TextArea(2, 5)]
     public string text;
 
@@ -42,12 +32,11 @@ public class EndingLine
     public bool changeImage;
     public Sprite newSprite;
 
-    [Header("Auto Next (optional)")]
-    [Tooltip("0 = 不自動跳下一句")]
-    public float autoNextAfterSeconds = 0f;
-
-    [Header("SFX (optional)")]
+    [Header("SFX at this line (optional)")]
     public bool playSfx;
     public AudioClip sfxClip;
     [Range(0f, 1f)] public float sfxVolume = 1f;
+
+    [Header("Auto Next (optional)")]
+    public float autoNextAfterSeconds = 0f;
 }

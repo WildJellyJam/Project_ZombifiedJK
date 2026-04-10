@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
-
+using System.Text;
 /// <summary>
 /// EndingSequencePlayer
 /// - 由 EndingManager 呼叫 Play(seq) 開始播放
@@ -12,6 +12,36 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class EndingSequencePlayer : MonoBehaviour
 {
+    [Header("Debug")]
+    public bool debugLogs = true;
+    [Tooltip("把最近幾條 debug 顯示在畫面上（可不填）")]
+    public TextMeshProUGUI debugOverlay;
+
+    private readonly StringBuilder _dbg = new StringBuilder(512);
+    private const int _dbgMaxLines = 8;
+
+    private void D(string msg)
+    {
+        if (!debugLogs) return;
+
+        Debug.Log(msg);
+
+        if (debugOverlay == null) return;
+
+        // 簡單保留最近幾行
+        _dbg.AppendLine(msg);
+        var lines = _dbg.ToString().Split('\n');
+        if (lines.Length > _dbgMaxLines)
+        {
+            _dbg.Clear();
+            for (int i = lines.Length - _dbgMaxLines; i < lines.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(lines[i]))
+                    _dbg.AppendLine(lines[i]);
+            }
+        }
+        debugOverlay.text = _dbg.ToString();
+    }
     [Header("UI Root")]
     [Tooltip("整個結局 UI 的 CanvasGroup，用來做全畫面淡入淡出")]
     public CanvasGroup rootGroup;
@@ -69,6 +99,8 @@ public class EndingSequencePlayer : MonoBehaviour
 
         // 圖層初始
         SetupImageInitialState();
+
+
     }
 
     private void Start()
@@ -83,20 +115,30 @@ public class EndingSequencePlayer : MonoBehaviour
     {
         if (!clickToContinue && !skipTypingWithClick) return;
 
-        // 用滑鼠左鍵 / 任意點擊（你也可以改成按鍵）
         if (Input.GetMouseButtonDown(0))
         {
+            D($"[EndingInput] MouseDown | isTyping={_isTyping} skipTyping={skipTypingWithClick} clickToContinue={clickToContinue} timeScale={Time.timeScale} continue(before)={_continueRequested}");
+
             if (_isTyping && skipTypingWithClick)
             {
                 _skipTypingRequested = true;
+                D("[EndingInput] -> _skipTypingRequested = true");
             }
-            else if (clickToContinue)
+
+            if (clickToContinue)
             {
                 _continueRequested = true;
+                D("[EndingInput] -> _continueRequested = true");
             }
         }
     }
-
+    public void UI_Continue()
+    {
+        if (_isTyping && skipTypingWithClick)
+            _skipTypingRequested = true;   // 打字中 -> 先跳過打字
+        else
+            _continueRequested = true;     // 非打字 -> 下一句
+    }
     /// <summary>
     /// 給 EndingManager 呼叫：開始播放指定結局序列
     /// </summary>
@@ -156,6 +198,9 @@ public class EndingSequencePlayer : MonoBehaviour
         SetDialogue("");
         SetupImageInitialState();
 
+        if (seq.startImage != null)
+            yield return CrossFadeTo(seq.startImage, 0f); // 0f = 直接顯示；想淡入就改 imageFadeSeconds
+        
         for (int i = 0; i < steps.Count; i++)
         {
             var step = steps[i];
@@ -172,14 +217,14 @@ public class EndingSequencePlayer : MonoBehaviour
             // 3) 可選：進句前音效（例如喘氣、心跳）
             if (step.sfx != null && sfxSource != null)
             {
-                sfxSource.PlayOneShot(step.sfx);
+                sfxSource.PlayOneShot(step.sfx, step.sfxVolume);
             }
 
             // 4) 打字機
             yield return TypeLine(step.text);
 
             // 5) 每句結束後：等點擊繼續 或 自動下一句
-            yield return new WaitForSeconds(autoNextDelay);
+            yield return new WaitForSecondsRealtime(autoNextDelay);
 
             if (step.waitForClick)
             {
@@ -187,7 +232,7 @@ public class EndingSequencePlayer : MonoBehaviour
             }
             else if (step.extraHoldSeconds > 0f)
             {
-                yield return new WaitForSeconds(step.extraHoldSeconds);
+                yield return new WaitForSecondsRealtime(step.extraHoldSeconds);
             }
         }
 
@@ -353,9 +398,14 @@ public class EndingSequencePlayer : MonoBehaviour
 
     private IEnumerator WaitForContinue()
     {
-        _continueRequested = false;
+        D($"[EndingFlow] WaitForContinue ENTER | continue={_continueRequested}");
+
+        // 不要一進來就清掉，避免「點太早」被吃掉
         while (!_continueRequested)
             yield return null;
+
+        D("[EndingFlow] WaitForContinue EXIT (got click)");
+        _continueRequested = false; // 用完再清
     }
 
     // ---------------- Sequence Data Adapter ----------------
@@ -366,6 +416,7 @@ public class EndingSequencePlayer : MonoBehaviour
     [System.Serializable]
     public class EndingStep
     {
+        public float sfxVolume = 1f;
         public string speaker;
         [TextArea(2, 6)] public string text;
         public Sprite image;
@@ -386,28 +437,34 @@ public class EndingSequencePlayer : MonoBehaviour
     /// </summary>
     private IList<EndingStep> GetStepsFromSequence(EndingSequence seq)
     {
-        // ====== 情況 1：如果你 EndingSequence 本身就有 List<EndingStep> steps ======
-        // 取消下面註解，並把你的欄位名稱填對
-        //
-        // return seq.steps;
+        var list = new List<EndingStep>();
+        if (seq == null) return list;
+        if (seq.lines == null) return list;
 
-        // ====== 情況 2：你 EndingSequence 裡叫 lines，而且每個 line 欄位類似 speaker/text/image/sfx ======
-        // 你可以在這裡把它轉成 EndingStep list
-        //
-        // var list = new List<EndingStep>();
-        // foreach (var l in seq.lines)
-        // {
-        //     list.Add(new EndingStep {
-        //         speaker = l.speaker,
-        //         text = l.content,
-        //         image = l.sprite,
-        //         sfx = l.sfx,
-        //         waitForClick = l.waitForClick
-        //     });
-        // }
-        // return list;
+        foreach (var l in seq.lines)
+        {
+            if (l == null) continue;
 
-        // ====== 暫時：如果你還沒接資料，就回 null，讓你看得到 warning ======
-        return null;
+            var step = new EndingStep
+            {
+                speaker = l.speaker ?? "",
+                text = l.text ?? "",
+
+                // 只有在該句勾 Change Image 時才換圖
+                image = (l.changeImage && l.newSprite != null) ? l.newSprite : null,
+
+                // 只有在該句勾 Play Sfx 時才播
+                sfx = (l.playSfx && l.sfxClip != null) ? l.sfxClip : null,
+                sfxVolume = Mathf.Clamp01(l.sfxVolume),
+
+                // AutoNextAfterSeconds > 0 就不等點擊，改成停留指定秒數
+                waitForClick = (l.autoNextAfterSeconds <= 0f),
+                extraHoldSeconds = (l.autoNextAfterSeconds > 0f) ? l.autoNextAfterSeconds : 0f
+            };
+
+            list.Add(step);
+        }
+
+        return list;
     }
 }
