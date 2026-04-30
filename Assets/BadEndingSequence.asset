@@ -13,87 +13,86 @@ MonoBehaviour:
   m_Name: BadEndingSequence
   m_EditorClassIdentifier: 
   endingId: Ending_A
-  theme: 0
-  startImage: {fileID: 21300000, guid: 4d09af98f76de404592efb05fb4a2710, type: 3}
-  lines:
+  startImage: {fileID: 21300000, guid: d2c5b23e06217ba4fa7ffbb1734a558c, type: 3}
+  steps:
   - speaker: 
     text: "\u300C\u662F\u4E0D\u662F\u6211\u8B1B\u932F\u4E86\u4EC0\u9EBC\uFF1F\u300D\u4F60\u5728\u5FC3\u88E1\u91CD\u64AD\u7B2C\u4E5D\u6B21......"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u4ED6\u5011\u6C92\u6709\u8A0E\u53AD\u4F60\u3002"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u4ED6\u5011\u53EA\u662F\uFF0C\u5B8C\u5168\u4E0D\u9700\u8981\u4F60\u3002"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u300C\u6211\u5230\u5E95\u5728\u5E79\u561B\u3002\u300D"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u4F60\u89BA\u5F97\u2026\u2026\u4EC0\u9EBC\u90FD\u505A\u4E0D\u5230\u3002"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u4F60\u5728\u5FC3\u88E1\u8DDF\u81EA\u5DF1\u8AAA\uFF1A\u660E\u5929\u6703\u597D\u4E00\u9EDE\u3002"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u4F46\u4F60\u4E0D\u592A\u76F8\u4FE1\u3002"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u9019\u4E00\u751F\u7684\u82E6\u96E3\u90FD\u662F\u81EA\u5DF1\u9020\u6210\u7684....\u4F60\u7121\u6CD5\u7529\u53BB\u9019\u6A23\u7684\u60F3\u6CD5"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u4F60\u628A\u982D\u66F4\u6DF1\u5730\u57CB\u9032\u88AB\u7AA9\u3002"
     changeImage: 0
     newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   - speaker: 
     text: "\u7D50\u5C40\uFF1A\u300A\u4E0D\u518D\u898B\u300B\n\u4F60\u8F1F\u5B78\u4E86\n\u4F60\u767C\u73FE\u81EA\u5DF1\u597D\u50CF\u2026\u2026\u6C92\u6709\u8981\u722C\u8D77\u4F86\u7684\u7406\u7531"
-    changeImage: 0
-    newSprite: {fileID: 0}
-    autoNextAfterSeconds: 0
+    changeImage: 1
+    newSprite: {fileID: 21300000, guid: 7ef04bfbdf16ce34895c722f33dbdc45, type: 3}
     playSfx: 0
     sfxClip: {fileID: 0}
     sfxVolume: 1
+    autoNextAfterSeconds: 0
   backToSceneName: MainMenu

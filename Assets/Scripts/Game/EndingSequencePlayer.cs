@@ -222,17 +222,21 @@ public class EndingSequencePlayer : MonoBehaviour
 
             // 4) 打字機
             yield return TypeLine(step.text);
-
+            D($"[EndingFlow] After TypeLine -> waitForClick={step.waitForClick} autoNextDelay={autoNextDelay}");
             // 5) 每句結束後：等點擊繼續 或 自動下一句
-            yield return new WaitForSecondsRealtime(autoNextDelay);
-
             if (step.waitForClick)
             {
+                // ✅ 直接等點擊，不要卡在 autoNextDelay
                 yield return WaitForContinue();
             }
-            else if (step.extraHoldSeconds > 0f)
+            else
             {
-                yield return new WaitForSecondsRealtime(step.extraHoldSeconds);
+                // ✅ 只有「自動下一句」才需要 delay / hold
+                if (autoNextDelay > 0f)
+                    yield return new WaitForSecondsRealtime(autoNextDelay);
+
+                if (step.extraHoldSeconds > 0f)
+                    yield return new WaitForSecondsRealtime(step.extraHoldSeconds);
             }
         }
 

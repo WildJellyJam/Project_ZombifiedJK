@@ -1002,8 +1002,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 99
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 005a987d08aec7f4ba0fc95a71e71c44, type: 2}
-  m_sharedMaterial: {fileID: 5665772148651733039, guid: 005a987d08aec7f4ba0fc95a71e71c44, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9be16a1977a7bdc4f879eb5f40b635c6, type: 2}
+  m_sharedMaterial: {fileID: 9202642005719618802, guid: 9be16a1977a7bdc4f879eb5f40b635c6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1619,8 +1619,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9be16a1977a7bdc4f879eb5f40b635c6, type: 2}
+  m_sharedMaterial: {fileID: 9202642005719618802, guid: 9be16a1977a7bdc4f879eb5f40b635c6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1750,6 +1750,10 @@ MonoBehaviour:
   moveSpeed: 15
   stayTime: 1.53
   fadeTime: 0.91
+  bottomBaseOffset: 0
+  minimumLineHeight: 30
+  extraLinePadding: 0
+  extraPerWrappedLine: 10
 --- !u!1 &655375744
 GameObject:
   m_ObjectHideFlags: 0
@@ -2048,7 +2052,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b68e33658d868304ba56a65bc618e451, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultEventPanelPrefab: {fileID: 5612240586886651055, guid: d536f9e81e17a354eaffc605de4170f1, type: 3}
+  defaultEventPanelPrefab: {fileID: 6402007200652325372, guid: a64368ca82043964197b25156a29fba0, type: 3}
   receiveCatVideoPanelPrefab: {fileID: 0}
   parentsArguePanelPrefab: {fileID: 0}
   enterBadEndingMode: 0
@@ -2063,25 +2067,36 @@ MonoBehaviour:
   cutScenePanel: {fileID: 1932519964}
   cutScenePanelTextUI: {fileID: 0}
   homeEvents:
-  - eventName: ShopDefault
-    description: "\u4F60\u624B\u88E1\u62FF\u8457\u4E00\u7F50\u725B\u5976 \u986B\u6296\u8457\n\u5E97\u54E1\u7AD9\u5728\u6AC3\u53F0\u7684\u5C0D\u9762\u770B\u8457\u4F60"
-    panelPrefab: {fileID: 5612240586886651055, guid: d536f9e81e17a354eaffc605de4170f1, type: 3}
+  - eventName: HomeSleep
+    description: "\u597D\u56F0...."
+    afterEventDescription: 
+    panelPrefab: {fileID: 6402007200652325372, guid: a64368ca82043964197b25156a29fba0, type: 3}
     minAnxiety: 0
     maxAnxiety: 100
     anxietyDelta: 0
     timeCostHours: 1
   shopEvents:
   - eventName: ShopDefault
-    description: "\u4F60\u624B\u88E1\u62FF\u8457\u4E00\u7F50\u725B\u5976 \u986B\u6296\u8457\n\u5E97\u54E1\u7AD9\u5728\u6AC3\u53F0\u7684\u5C0D\u9762\u770B\u8457\u4F60"
-    panelPrefab: {fileID: 5612240586886651055, guid: d536f9e81e17a354eaffc605de4170f1, type: 3}
+    description: "\u4F60\u624B\u88E1\u62FF\u8457\u4E00\u7F50\u725B\u5976 \u986B\u6296\u8457\n\u5E97\u54E1\u7AD9\u5728\u6AC3\u53F0\u7684\u5C0D\u9762\u770B\u8457\u4F60\n\u4F60\u8A72\u600E\u9EBC\u505A"
+    afterEventDescription: 
+    panelPrefab: {fileID: 6402007200652325372, guid: a64368ca82043964197b25156a29fba0, type: 3}
     minAnxiety: 0
     maxAnxiety: 100
     anxietyDelta: 0
     timeCostHours: 1
   outsideEvents:
   - eventName: ShopDefault
-    description: "\u4F60\u624B\u88E1\u62FF\u8457\u4E00\u7F50\u725B\u5976 \u986B\u6296\u8457\n\u5E97\u54E1\u7AD9\u5728\u6AC3\u53F0\u7684\u5C0D\u9762\u770B\u8457\u4F60"
-    panelPrefab: {fileID: 5612240586886651055, guid: d536f9e81e17a354eaffc605de4170f1, type: 3}
+    description: "\u4F60\u9047\u5230\u4E86\u5B78\u6821\u7684\u540C\u5B78\n\n"
+    afterEventDescription: 
+    panelPrefab: {fileID: 6402007200652325372, guid: a64368ca82043964197b25156a29fba0, type: 3}
+    minAnxiety: 0
+    maxAnxiety: 100
+    anxietyDelta: 0
+    timeCostHours: 1
+  - eventName: ShopDefault
+    description: "\u4F60\u9047\u5230\u4E86\u4EBA\uFF01\n"
+    afterEventDescription: 
+    panelPrefab: {fileID: 6402007200652325372, guid: a64368ca82043964197b25156a29fba0, type: 3}
     minAnxiety: 0
     maxAnxiety: 100
     anxietyDelta: 0
@@ -2511,8 +2526,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9be16a1977a7bdc4f879eb5f40b635c6, type: 2}
+  m_sharedMaterial: {fileID: 9202642005719618802, guid: 9be16a1977a7bdc4f879eb5f40b635c6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4525,10 +4540,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: "\u7126\u616E "
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 28450123e790f534fa5cbe85253bc4df, type: 2}
-  m_sharedMaterial: {fileID: 2028756390007233217, guid: 28450123e790f534fa5cbe85253bc4df, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1adc71a6952a67a40b3f8efec2c19811, type: 2}
+  m_sharedMaterial: {fileID: 811556022119311871, guid: 1adc71a6952a67a40b3f8efec2c19811, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4552,8 +4567,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 50.54
+  m_fontSizeBase: 50.54
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
