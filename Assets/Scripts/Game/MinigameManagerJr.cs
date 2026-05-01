@@ -372,4 +372,4 @@ public class MinigameManagerJr : MonoBehaviour
         int index = Random.Range(0, validOptions.Count);
         return validOptions[index];
     }
-}   
+}

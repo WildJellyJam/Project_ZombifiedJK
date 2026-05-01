@@ -18,12 +18,11 @@ public class RandomEventManager : MonoBehaviour
 
     [Tooltip("例如：爸媽吵架用的事件面板（可留空，就用預設）")]
     public GameObject parentsArguePanelPrefab;
-    // 額外的後續文字（事件結束後可再跳一次）
-    private string pendingAfterEventDescription = "";
-    private bool isShowingAfterEventDescription = false;
-    private GameObject lastUsedEventPanelPrefab;
 
-    // ====== Bad Ending 用 ======
+    // =========================================================
+    //  Bad Ending 用
+    // =========================================================
+
     [System.Serializable]
     public class BadEndingChoice
     {
@@ -57,10 +56,8 @@ public class RandomEventManager : MonoBehaviour
     public bool loadSceneAfterBadEnding = false;
     public string nextSceneAfterBadEnding = "";
 
-    // Bad Ending 當前狀態
     private int currentBadEndingStageIndex = 0;
 
-    // Bad Ending 畫面引用
     private GameObject badEndingPanelInstance;
     private Image badEndingBackgroundImage;
     private Image badEndingPortraitImage;
@@ -68,11 +65,22 @@ public class RandomEventManager : MonoBehaviour
     private Button[] badEndingButtons;
     private TextMeshProUGUI[] badEndingButtonTexts;
 
-    // 目前畫面上那個事件 panel（如果有）
+    // =========================================================
+    //  一般事件 UI
+    // =========================================================
+
     [HideInInspector] public GameObject cutScenePanel;
     [HideInInspector] public TextMeshProUGUI cutScenePanelTextUI;
 
-    // ====== （可選）每個區域的事件表，依 anxiety 篩選 ======
+    // 事件結束後額外跳出的文字
+    private string pendingAfterEventDescription = "";
+    private bool isShowingAfterEventDescription = false;
+    private GameObject lastUsedEventPanelPrefab;
+
+    // =========================================================
+    //  各區域事件
+    // =========================================================
+
     [System.Serializable]
     public class AreaEventOption
     {
@@ -100,11 +108,116 @@ public class RandomEventManager : MonoBehaviour
     public List<AreaEventOption> shopEvents = new List<AreaEventOption>();
     public List<AreaEventOption> outsideEvents = new List<AreaEventOption>();
 
-    // 目前是否有事件正在進行中
     private bool isEventActive = false;
-
-    // 記錄現在是哪一個事件
     private string currentEventName = "";
+
+    // =========================================================
+    //  連鎖事件系統
+    // =========================================================
+
+    [System.Serializable]
+    public class ChainChoiceOutcome
+    {
+        public string outcomeName;
+
+        [Range(0f, 100f)]
+        public float weight = 100f;
+
+        [TextArea(2, 5)]
+        public string responseText;
+
+        [TextArea(2, 5)]
+        public string afterEventDescription;
+
+        public string immediateNextNodeId;   // 這次按下去立刻切到哪個節點
+        public string nextNodeId;            // 下次再抽到 root event 時要走哪個節點
+
+        [Header("結果效果")]
+        public float anxietyDelta = 0f;
+        public float timeCostHours = 0f;
+
+        [Header("結果外觀覆蓋（可留空）")]
+        public GameObject overridePanelPrefab;
+        public Sprite overrideBackgroundSprite;
+        public Sprite overridePortraitSprite;
+    }
+
+    [System.Serializable]
+    public class ChainEventChoice
+    {
+        public string buttonLabel;
+
+        [Header("如果有填 randomOutcomes，按這個選項時會先抽其中一個結果")]
+        public List<ChainChoiceOutcome> randomOutcomes = new List<ChainChoiceOutcome>();
+
+        [Header("保底單一結果（當 randomOutcomes 沒填時才使用）")]
+        [TextArea(2, 5)]
+        public string responseText;
+
+        [TextArea(2, 5)]
+        public string afterEventDescription;
+
+        public string immediateNextNodeId;
+        public string nextNodeId;
+
+        [Header("選項效果")]
+        public float anxietyDelta = 0f;
+        public float timeCostHours = 0f;
+
+        [Header("選項外觀覆蓋（可留空）")]
+        public GameObject overridePanelPrefab;
+        public Sprite overrideBackgroundSprite;
+        public Sprite overridePortraitSprite;
+    }
+
+    [System.Serializable]
+    public class ChainEventNode
+    {
+        public string nodeId;
+
+        [TextArea(2, 6)]
+        public string description;
+
+        [TextArea(2, 6)]
+        public string afterEventDescription;
+
+        public GameObject panelPrefab;
+
+        [Header("節點圖片（可留空，不換）")]
+        public Sprite backgroundSprite;
+        public Sprite portraitSprite;
+
+        [Header("節點選項")]
+        public List<ChainEventChoice> choices = new List<ChainEventChoice>();
+    }
+
+    [System.Serializable]
+    public class ChainEventDefinition
+    {
+        public string rootEventName;      // 要對應上方 AreaEventOption.eventName
+        public string startNodeId = "";   // 第一次抽到時從哪個節點開始
+        public List<ChainEventNode> nodes = new List<ChainEventNode>();
+    }
+
+    [Header("連鎖事件系統")]
+    public List<ChainEventDefinition> chainEventDefinitions = new List<ChainEventDefinition>();
+
+    // 記住每個 rootEventName 下一次該走哪個 nodeId
+    private readonly Dictionary<string, string> chainEventNextNodeMap = new Dictionary<string, string>();
+
+    // 目前正在跑的連鎖事件上下文
+    private ChainEventDefinition currentChainDefinition;
+    private ChainEventNode currentChainNode;
+    private string currentChainRootEventName = "";
+    private bool currentEventUsesChain = false;
+    private GameObject currentChainFallbackPanelPrefab;
+
+    private Button[] chainChoiceButtons = new Button[4];
+    private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
+
+    // =========================================================
+    //  Unity
+    // =========================================================
 
     private void Start()
     {
@@ -113,65 +226,9 @@ public class RandomEventManager : MonoBehaviour
             StartBadEndingMode();
         }
     }
-   
-    [System.Serializable]
-    public class ChainEventChoice
-    {
-        public string buttonLabel;
 
-        [TextArea(2, 5)]
-        public string responseText;   // 按下選項後立刻顯示的文字（可留空）
-
-        [TextArea(2, 5)]
-        public string afterEventDescription;   // 事件結束後額外跳出的文字（依選項而不同）
-
-        public string nextNodeId;     // 下次再抽到同一個 rootEventName 時，要走哪個節點
-
-        [Header("選項效果")]
-        public float anxietyDelta = 0f;
-        public float timeCostHours = 0f;
-    }
-    [Header("連鎖事件系統")]
-public List<ChainEventDefinition> chainEventDefinitions = new List<ChainEventDefinition>();
-
-// 記住每個 rootEventName 下一次要走哪個 nodeId
-private readonly Dictionary<string, string> chainEventNextNodeMap = new Dictionary<string, string>();
-
-// 目前正在顯示的連鎖事件上下文
-private ChainEventDefinition currentChainDefinition;
-private ChainEventNode currentChainNode;
-private string currentChainRootEventName = "";
-private bool currentEventUsesChain = false;
-
-// 連鎖事件的按鈕快取
-private Button[] chainChoiceButtons = new Button[4];
-private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
-    [System.Serializable]
-    public class ChainEventNode
-    {
-        public string nodeId;         // 例如：B、B-2-1、B-2-2
-
-        [TextArea(2, 6)]
-        public string description;
-
-        [TextArea(2, 6)]
-        public string afterEventDescription;   // 事件結束後額外再跳一段（可留空）
-
-        public GameObject panelPrefab;         // 這個節點自己要用的 panel，可留空就用外部 chosen.panelPrefab
-
-        [Header("選項")]
-        public List<ChainEventChoice> choices = new List<ChainEventChoice>();
-    }
-
-    [System.Serializable]
-    public class ChainEventDefinition
-    {
-        public string rootEventName;      // 例如：B
-        public string startNodeId = "B";  // 第一次抽到 B 時要顯示哪個節點
-        public List<ChainEventNode> nodes = new List<ChainEventNode>();
-    }
     // =========================================================
-    //  Bad Ending 模式
+    //  Bad Ending
     // =========================================================
 
     public void StartBadEndingMode()
@@ -190,6 +247,7 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
         ClearCurrentEventPanel();
         ClearPersistentEventDescriptionInStatUI();
+        ResetCurrentChainContext();
 
         if (badEndingPanelInstance != null)
         {
@@ -210,9 +268,9 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
     private void CacheBadEndingUIReferences()
     {
-        Transform bg = badEndingPanelInstance.transform.Find("BackgroundImage");
-        Transform portrait = badEndingPanelInstance.transform.Find("CharacterPortrait");
-        Transform dialogue = badEndingPanelInstance.transform.Find("displayText");
+        Transform bg = FindDeepChildByName(badEndingPanelInstance.transform, "BackgroundImage");
+        Transform portrait = FindDeepChildByName(badEndingPanelInstance.transform, "CharacterPortrait");
+        Transform dialogue = FindDeepChildByName(badEndingPanelInstance.transform, "displayText");
 
         if (bg != null) badEndingBackgroundImage = bg.GetComponent<Image>();
         if (portrait != null) badEndingPortraitImage = portrait.GetComponent<Image>();
@@ -229,11 +287,11 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         for (int i = 0; i < 4; i++)
         {
             string btnName = $"Button_{i + 1}";
-            Transform btn = badEndingPanelInstance.transform.Find(btnName);
+            Transform btn = FindDeepChildByName(badEndingPanelInstance.transform, btnName);
             if (btn != null)
             {
                 badEndingButtons[i] = btn.GetComponent<Button>();
-                badEndingButtonTexts[i] = btn.GetComponentInChildren<TextMeshProUGUI>();
+                badEndingButtonTexts[i] = btn.GetComponentInChildren<TextMeshProUGUI>(true);
             }
         }
     }
@@ -248,15 +306,22 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
         BadEndingStage stage = badEndingStages[stageIndex];
 
-        if (badEndingBackgroundImage != null)
+        if (badEndingBackgroundImage != null && stage.backgroundSprite != null)
         {
             badEndingBackgroundImage.sprite = stage.backgroundSprite;
         }
 
         if (badEndingPortraitImage != null)
         {
-            badEndingPortraitImage.sprite = stage.portraitSprite;
-            badEndingPortraitImage.enabled = (stage.portraitSprite != null);
+            if (stage.portraitSprite != null)
+            {
+                badEndingPortraitImage.sprite = stage.portraitSprite;
+                badEndingPortraitImage.enabled = true;
+            }
+            else
+            {
+                badEndingPortraitImage.enabled = false;
+            }
         }
 
         if (badEndingDialogueText != null)
@@ -285,28 +350,6 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
                 badEndingButtons[i].onClick.RemoveAllListeners();
             }
         }
-    }
-    private void ApplyEventDescriptionLayout(TextMeshProUGUI tmp, float extraTopOffset = 18f, float extraPadding = 12f, float minHeight = 40f)
-    {
-        if (tmp == null) return;
-
-        tmp.enableWordWrapping = true;
-        tmp.overflowMode = TextOverflowModes.Overflow;
-        tmp.ForceMeshUpdate();
-
-        RectTransform rt = tmp.rectTransform;
-
-        float preferredHeight = tmp.preferredHeight + extraPadding;
-        if (preferredHeight < minHeight)
-            preferredHeight = minHeight;
-
-        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
-
-        Vector2 pos = rt.anchoredPosition;
-        pos.y += extraTopOffset;
-        rt.anchoredPosition = pos;
-
-        LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
     }
 
     private void OnBadEndingChoiceClicked(int choiceIndex)
@@ -340,9 +383,11 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
                 SetupBadEndingStage(currentBadEndingStageIndex);
                 return;
             }
-
-            FinishBadEnding();
-            return;
+            else
+            {
+                FinishBadEnding();
+                return;
+            }
         }
 
         if (choice.finishBadEnding)
@@ -362,6 +407,7 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         }
 
         ClearPersistentEventDescriptionInStatUI();
+        ResetCurrentChainContext();
 
         enterBadEndingMode = false;
         isEventActive = false;
@@ -385,6 +431,10 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
             return;
         }
 
+        ResetCurrentChainContext();
+        pendingAfterEventDescription = "";
+        isShowingAfterEventDescription = false;
+
         int randomCode = UnityEngine.Random.Range(0, 100);
         string eventName = "";
 
@@ -396,7 +446,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
             ShowEventPanel(
                 "發生了一件小小的不順心的事情。",
-                GetSafePanelPrefab(null)
+                GetSafePanelPrefab(null),
+                ""
             );
         }
         else if (randomCode <= 60)
@@ -407,7 +458,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
             ShowEventPanel(
                 "你遇到了一件讓你有點緊張的狀況。",
-                GetSafePanelPrefab(null)
+                GetSafePanelPrefab(null),
+                ""
             );
         }
         else if (randomCode <= 90)
@@ -418,7 +470,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
             ShowEventPanel(
                 "壓力突然大幅襲來，你感到非常不安。",
-                GetSafePanelPrefab(null)
+                GetSafePanelPrefab(null),
+                ""
             );
         }
         else
@@ -429,7 +482,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
             ShowEventPanel(
                 "一件特別的事情發生了……",
-                GetSafePanelPrefab(null)
+                GetSafePanelPrefab(null),
+                ""
             );
         }
 
@@ -552,12 +606,14 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         currentEventName = chosen.eventName;
         isEventActive = true;
 
+        pendingAfterEventDescription = "";
+        isShowingAfterEventDescription = false;
+
         Debug.Log($"[{areaNameForDebug}] 觸發事件：{chosen.eventName}（anxiety={currentAnxiety}）");
 
         // 先嘗試走連鎖事件
         if (TryStartChainEvent(chosen))
         {
-            // root 事件本身的效果仍然可以照常套用
             if (chosen.anxietyDelta != 0f)
             {
                 newGameManager.Instance.playerStats.UpdateAnxiety(chosen.anxietyDelta);
@@ -574,36 +630,20 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
             return;
         }
 
-        // 如果不是連鎖事件，才走你原本的普通事件流程
+        // 普通事件流程
+        ResetCurrentChainContext();
+
+        GameObject normalPanelPrefab = chosen.panelPrefab != null ? chosen.panelPrefab : defaultEventPanelPrefab;
+        if (normalPanelPrefab != null)
+        {
+            ShowEventPanel(chosen.description, normalPanelPrefab, chosen.afterEventDescription);
+        }
+
         if (chosen.anxietyDelta != 0f)
         {
             newGameManager.Instance.playerStats.UpdateAnxiety(chosen.anxietyDelta);
         }
 
-      
-
-        if (chosen.timeCostHours != 0f)
-        {
-            newGameManager.Instance.timeSystem.AddEventTime(chosen.timeCostHours);
-            newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
-        }
-
-        triggeredEvents.Add(chosen.eventName);
-        newGameManager.Instance.OnTimeManuallyUpdated();
-
-        GameObject prefabToUse = chosen.panelPrefab != null ? chosen.panelPrefab : defaultEventPanelPrefab;
-        if (prefabToUse != null)
-        {
-            ShowEventPanel(chosen.description, prefabToUse, chosen.afterEventDescription);
-        }
-
-        // 再做數值變化
-        if (chosen.anxietyDelta != 0f)
-        {
-            newGameManager.Instance.playerStats.UpdateAnxiety(chosen.anxietyDelta);
-        }
-
-        // 最後再加時間
         if (chosen.timeCostHours != 0f)
         {
             newGameManager.Instance.timeSystem.AddEventTime(chosen.timeCostHours);
@@ -613,6 +653,7 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         triggeredEvents.Add(chosen.eventName);
         newGameManager.Instance.OnTimeManuallyUpdated();
     }
+
     // =========================================================
     //  固定命名事件
     // =========================================================
@@ -628,6 +669,10 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         currentEventName = eventName;
         isEventActive = true;
 
+        pendingAfterEventDescription = "";
+        isShowingAfterEventDescription = false;
+        ResetCurrentChainContext();
+
         switch (eventName)
         {
             case "ReceiveMessage":
@@ -641,13 +686,15 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
                 Inventory.PickupItem("Milk");
                 newGameManager.Instance.playerStats.UpdateAnxiety(5f);
                 FindObjectOfType<gameUIManager>().ShowMilk();
-                newGameManager.Instance.timeSystem.AddEventTime(1f);
-                newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
 
                 ShowEventPanel(
                     "你出門去便利商店買牛奶。",
-                    GetSafePanelPrefab(null)
+                    GetSafePanelPrefab(null),
+                    ""
                 );
+
+                newGameManager.Instance.timeSystem.AddEventTime(1f);
+                newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
                 break;
 
             case "ReceiveCatVideo":
@@ -656,7 +703,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
                 ShowEventPanel(
                     "你收到了超可愛的貓咪影片，心情稍微放鬆了一點。",
-                    GetSafePanelPrefab(receiveCatVideoPanelPrefab)
+                    GetSafePanelPrefab(receiveCatVideoPanelPrefab),
+                    ""
                 );
                 break;
 
@@ -666,7 +714,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
                 ShowEventPanel(
                     "你聽到爸媽在客廳吵架，胸口一陣發緊。",
-                    GetSafePanelPrefab(parentsArguePanelPrefab)
+                    GetSafePanelPrefab(parentsArguePanelPrefab),
+                    ""
                 );
                 break;
 
@@ -676,7 +725,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
                 ShowEventPanel(
                     "你在路上遇見了希多，氣氛有點微妙。",
-                    GetSafePanelPrefab(null)
+                    GetSafePanelPrefab(null),
+                    ""
                 );
                 break;
 
@@ -684,7 +734,8 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
                 Debug.Log("校園熱門度太低，觸發事件！");
                 ShowEventPanel(
                     "你感覺自己在學校變得有點透明，心裡有點不是滋味。",
-                    GetSafePanelPrefab(null)
+                    GetSafePanelPrefab(null),
+                    ""
                 );
                 break;
         }
@@ -693,63 +744,9 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
     }
 
     // =========================================================
-    //  顯示事件 Panel
+    //  連鎖事件：節點 / 選項 / 機率
     // =========================================================
-    private Transform FindDeepChildByName(Transform parent, string childName)
-    {
-        foreach (Transform child in parent)
-        {
-            if (child.name == childName)
-                return child;
 
-            Transform found = FindDeepChildByName(child, childName);
-            if (found != null)
-                return found;
-        }
-
-        return null;
-    }
-
-    public void ShowEventPanel(string description, GameObject panelPrefab, string afterEventDescription = "")
-    {
-        if (panelPrefab == null)
-        {
-            Debug.LogError("[ShowEventPanel] panelPrefab 為 null，請在 Inspector 指定 defaultEventPanelPrefab 或對應事件的 prefab。");
-            return;
-        }
-
-        ClearCurrentEventPanel();
-
-        cutScenePanel = Instantiate(panelPrefab);
-        cutScenePanel.name = panelPrefab.name + "_Instance";
-
-        lastUsedEventPanelPrefab = panelPrefab;
-
-        Transform textTransform = FindDeepChildByName(cutScenePanel.transform, "displayText");
-        if (textTransform == null)
-        {
-            Debug.LogError("[ShowEventPanel] 在 " + cutScenePanel.name + " 裡找不到 'displayText'（包含子階層），請確認 prefab 結構。");
-            return;
-        }
-
-        cutScenePanelTextUI = textTransform.GetComponent<TextMeshProUGUI>();
-        if (cutScenePanelTextUI == null)
-        {
-            Debug.LogError("[ShowEventPanel] 'displayText' 上沒有 TextMeshProUGUI，請確認掛的是 TMP 文字。");
-            return;
-        }
-
-        cutScenePanelTextUI.text = description;
-        cutScenePanel.SetActive(true);
-
-        // 只有第一段事件文字才把後續文字記起來
-        if (!isShowingAfterEventDescription)
-        {
-            pendingAfterEventDescription = afterEventDescription;
-        }
-
-        TryShowPersistentEventDescriptionInStatUI(description);
-    }
     private ChainEventDefinition GetChainDefinition(string rootEventName)
     {
         if (chainEventDefinitions == null) return null;
@@ -800,6 +797,21 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         chainEventNextNodeMap[rootEventName] = nextNodeId;
     }
 
+    private void ResetCurrentChainContext()
+    {
+        currentChainDefinition = null;
+        currentChainNode = null;
+        currentChainRootEventName = "";
+        currentEventUsesChain = false;
+        currentChainFallbackPanelPrefab = null;
+
+        for (int i = 0; i < chainChoiceButtons.Length; i++)
+        {
+            chainChoiceButtons[i] = null;
+            chainChoiceButtonTexts[i] = null;
+        }
+    }
+
     private bool TryStartChainEvent(AreaEventOption chosen)
     {
         if (chosen == null) return false;
@@ -808,36 +820,54 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         if (def == null)
             return false;
 
+        ResetCurrentChainContext();
+
+        currentChainDefinition = def;
+        currentChainRootEventName = def.rootEventName;
+        currentEventUsesChain = true;
+        currentChainFallbackPanelPrefab = chosen.panelPrefab != null ? chosen.panelPrefab : defaultEventPanelPrefab;
+
         string currentNodeId = GetCurrentNodeIdForRoot(def);
         ChainEventNode node = GetChainNode(def, currentNodeId);
 
         if (node == null)
         {
             Debug.LogWarning($"[ChainEvent] 找不到 nodeId={currentNodeId}，改用 startNodeId。");
-
             node = GetChainNode(def, def.startNodeId);
-            if (node == null)
-            {
-                Debug.LogError($"[ChainEvent] rootEventName={def.rootEventName} 連 startNodeId={def.startNodeId} 都找不到。");
-                return false;
-            }
         }
 
-        currentChainDefinition = def;
+        if (node == null)
+        {
+            Debug.LogError($"[ChainEvent] rootEventName={def.rootEventName} 找不到可用節點。");
+            ResetCurrentChainContext();
+            return false;
+        }
+
+        ShowChainNode(node, currentChainFallbackPanelPrefab, true);
+        Debug.Log($"[ChainEvent] root={def.rootEventName}, 顯示節點={node.nodeId}");
+        return true;
+    }
+
+    private void ShowChainNode(ChainEventNode node, GameObject fallbackPanelPrefab, bool rememberAfterText)
+    {
+        if (node == null) return;
+
         currentChainNode = node;
-        currentChainRootEventName = def.rootEventName;
-        currentEventUsesChain = true;
 
         GameObject panelToUse = node.panelPrefab != null
             ? node.panelPrefab
-            : (chosen.panelPrefab != null ? chosen.panelPrefab : defaultEventPanelPrefab);
+            : (fallbackPanelPrefab != null ? fallbackPanelPrefab : defaultEventPanelPrefab);
 
-        ShowEventPanel(node.description, panelToUse, node.afterEventDescription);
+        ShowEventPanel(
+            node.description,
+            panelToUse,
+            node.afterEventDescription,
+            node.backgroundSprite,
+            node.portraitSprite,
+            rememberAfterText
+        );
+
         SetupChainChoiceButtons(node);
-
-        Debug.Log($"[ChainEvent] root={def.rootEventName}, 顯示節點={node.nodeId}");
-
-        return true;
     }
 
     private void SetupChainChoiceButtons(ChainEventNode node)
@@ -879,11 +909,6 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
                 chainChoiceButtons[i].gameObject.SetActive(false);
             }
         }
-
-        if (node.choices.Count > 0 && chainChoiceButtons[0] == null)
-        {
-            Debug.LogWarning("[ChainEvent] 這個 panel 沒找到 Button_1 ~ Button_4，所以無法顯示連鎖事件選項。");
-        }
     }
 
     private void HideAllChainChoiceButtons()
@@ -898,6 +923,52 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
         }
     }
 
+    private bool AnyVisibleChainChoiceButtons()
+    {
+        for (int i = 0; i < chainChoiceButtons.Length; i++)
+        {
+            if (chainChoiceButtons[i] != null && chainChoiceButtons[i].gameObject.activeSelf)
+                return true;
+        }
+        return false;
+    }
+
+    private ChainChoiceOutcome PickWeightedOutcome(List<ChainChoiceOutcome> outcomes)
+    {
+        if (outcomes == null || outcomes.Count == 0)
+            return null;
+
+        float totalWeight = 0f;
+
+        for (int i = 0; i < outcomes.Count; i++)
+        {
+            if (outcomes[i] != null && outcomes[i].weight > 0f)
+                totalWeight += outcomes[i].weight;
+        }
+
+        if (totalWeight <= 0f)
+        {
+            int randomIndex = Random.Range(0, outcomes.Count);
+            return outcomes[randomIndex];
+        }
+
+        float roll = Random.Range(0f, totalWeight);
+        float current = 0f;
+
+        for (int i = 0; i < outcomes.Count; i++)
+        {
+            ChainChoiceOutcome outcome = outcomes[i];
+            if (outcome == null || outcome.weight <= 0f)
+                continue;
+
+            current += outcome.weight;
+            if (roll <= current)
+                return outcome;
+        }
+
+        return outcomes[outcomes.Count - 1];
+    }
+
     public void OnChainChoicePressed(int choiceIndex)
     {
         if (!currentEventUsesChain || currentChainNode == null)
@@ -908,46 +979,205 @@ private TextMeshProUGUI[] chainChoiceButtonTexts = new TextMeshProUGUI[4];
 
         ChainEventChoice choice = currentChainNode.choices[choiceIndex];
 
-        // 記住下次抽到這個 rootEventName 時，要走哪個節點
-        if (!string.IsNullOrWhiteSpace(choice.nextNodeId))
+        string finalResponseText = choice.responseText;
+        string finalAfterEventDescription = choice.afterEventDescription;
+        string finalImmediateNextNodeId = choice.immediateNextNodeId;
+        string finalNextNodeId = choice.nextNodeId;
+        float finalAnxietyDelta = choice.anxietyDelta;
+        float finalTimeCostHours = choice.timeCostHours;
+        GameObject finalOverridePanelPrefab = choice.overridePanelPrefab;
+        Sprite finalOverrideBackground = choice.overrideBackgroundSprite;
+        Sprite finalOverridePortrait = choice.overridePortraitSprite;
+
+        // 有機率結果就先抽一個
+        if (choice.randomOutcomes != null && choice.randomOutcomes.Count > 0)
         {
-            SetNextNodeIdForRoot(currentChainRootEventName, choice.nextNodeId);
-            Debug.Log($"[ChainEvent] root={currentChainRootEventName}, 下次改走={choice.nextNodeId}");
+            ChainChoiceOutcome pickedOutcome = PickWeightedOutcome(choice.randomOutcomes);
+
+            if (pickedOutcome != null)
+            {
+                finalResponseText = pickedOutcome.responseText;
+                finalAfterEventDescription = pickedOutcome.afterEventDescription;
+                finalImmediateNextNodeId = pickedOutcome.immediateNextNodeId;
+                finalNextNodeId = pickedOutcome.nextNodeId;
+                finalAnxietyDelta = pickedOutcome.anxietyDelta;
+                finalTimeCostHours = pickedOutcome.timeCostHours;
+                finalOverridePanelPrefab = pickedOutcome.overridePanelPrefab;
+                finalOverrideBackground = pickedOutcome.overrideBackgroundSprite;
+                finalOverridePortrait = pickedOutcome.overridePortraitSprite;
+
+                Debug.Log($"[ChainEvent] 選項 '{choice.buttonLabel}' 抽到結果：{pickedOutcome.outcomeName}");
+            }
         }
 
-        if (choice.anxietyDelta != 0f)
+        // 記住下次再抽到 root event 時要走哪個節點
+        if (!string.IsNullOrWhiteSpace(finalNextNodeId))
         {
-            newGameManager.Instance.playerStats.UpdateAnxiety(choice.anxietyDelta);
+            SetNextNodeIdForRoot(currentChainRootEventName, finalNextNodeId);
+            Debug.Log($"[ChainEvent] root={currentChainRootEventName}, 下次改走={finalNextNodeId}");
         }
 
-        if (choice.timeCostHours != 0f)
+        if (finalAnxietyDelta != 0f)
         {
-            newGameManager.Instance.timeSystem.AddEventTime(choice.timeCostHours);
+            newGameManager.Instance.playerStats.UpdateAnxiety(finalAnxietyDelta);
+        }
+
+        if (finalTimeCostHours != 0f)
+        {
+            newGameManager.Instance.timeSystem.AddEventTime(finalTimeCostHours);
             newGameManager.Instance.timeUI.UpdateTimeDisplay(newGameManager.Instance.timeSystem.gameTime);
         }
-        string choiceAfterText = choice.afterEventDescription;
 
-// 如果選項自己沒寫，就退回節點本身的 afterEventDescription
-if (string.IsNullOrWhiteSpace(choiceAfterText) && currentChainNode != null)
-{
-    choiceAfterText = currentChainNode.afterEventDescription;
-}
+        // 沒填的話，退回目前節點的 afterEventDescription
+        if (string.IsNullOrWhiteSpace(finalAfterEventDescription) && currentChainNode != null)
+        {
+            finalAfterEventDescription = currentChainNode.afterEventDescription;
+        }
 
-pendingAfterEventDescription = choiceAfterText;
-isShowingAfterEventDescription = false;
+        pendingAfterEventDescription = finalAfterEventDescription;
+        isShowingAfterEventDescription = false;
+
+        // 這次按下去立刻切到下一個節點（換圖 / 換文字 / 換選項）
+        if (!string.IsNullOrWhiteSpace(finalImmediateNextNodeId))
+        {
+            ChainEventNode nextNode = GetChainNode(currentChainDefinition, finalImmediateNextNodeId);
+            if (nextNode != null)
+            {
+                GameObject fallbackPanel = finalOverridePanelPrefab != null
+                    ? finalOverridePanelPrefab
+                    : currentChainFallbackPanelPrefab;
+
+                ShowChainNode(nextNode, fallbackPanel, true);
+
+                // 如果結果自己也有 afterEventDescription，蓋掉 nextNode 的
+                if (!string.IsNullOrWhiteSpace(finalAfterEventDescription))
+                {
+                    pendingAfterEventDescription = finalAfterEventDescription;
+                    isShowingAfterEventDescription = false;
+                }
+
+                Debug.Log($"[ChainEvent] 立刻切換到節點：{nextNode.nodeId}");
+                return;
+            }
+            else
+            {
+                Debug.LogWarning($"[ChainEvent] 找不到 immediateNextNodeId = {finalImmediateNextNodeId}");
+            }
+        }
+
         HideAllChainChoiceButtons();
 
-        // 有 responseText 就先顯示當下回應
-        if (!string.IsNullOrWhiteSpace(choice.responseText))
-        {
-            if (cutScenePanelTextUI != null)
-            {
-                cutScenePanelTextUI.text = choice.responseText;
-            }
+        // 沒有 immediateNextNodeId，就直接顯示這次結果自己的描述 / 圖
+        bool hasVisualOverride = finalOverridePanelPrefab != null || finalOverrideBackground != null || finalOverridePortrait != null;
 
-            TryShowPersistentEventDescriptionInStatUI(choice.responseText);
+        if (!string.IsNullOrWhiteSpace(finalResponseText) || hasVisualOverride)
+        {
+            string textToShow = !string.IsNullOrWhiteSpace(finalResponseText)
+                ? finalResponseText
+                : (cutScenePanelTextUI != null ? cutScenePanelTextUI.text : "");
+
+            GameObject responsePanel = finalOverridePanelPrefab != null
+                ? finalOverridePanelPrefab
+                : (lastUsedEventPanelPrefab != null ? lastUsedEventPanelPrefab : defaultEventPanelPrefab);
+
+            ShowEventPanel(
+                textToShow,
+                responsePanel,
+                "",
+                finalOverrideBackground,
+                finalOverridePortrait,
+                false
+            );
+
+            return;
         }
     }
+
+    // =========================================================
+    //  顯示事件 Panel
+    // =========================================================
+
+    public void ShowEventPanel(
+        string description,
+        GameObject panelPrefab,
+        string afterEventDescription = "",
+        Sprite backgroundOverride = null,
+        Sprite portraitOverride = null,
+        bool rememberAfterText = true
+    )
+    {
+        if (panelPrefab == null)
+        {
+            Debug.LogError("[ShowEventPanel] panelPrefab 為 null，請在 Inspector 指定 defaultEventPanelPrefab 或對應事件的 prefab。");
+            return;
+        }
+
+        ClearCurrentEventPanel();
+
+        cutScenePanel = Instantiate(panelPrefab);
+        cutScenePanel.name = panelPrefab.name + "_Instance";
+        lastUsedEventPanelPrefab = panelPrefab;
+
+        Transform textTransform = FindDeepChildByName(cutScenePanel.transform, "displayText");
+        if (textTransform == null)
+        {
+            Debug.LogError("[ShowEventPanel] 在 " + cutScenePanel.name + " 裡找不到 'displayText'（包含子階層），請確認 prefab 結構。");
+            return;
+        }
+
+        cutScenePanelTextUI = textTransform.GetComponent<TextMeshProUGUI>();
+        if (cutScenePanelTextUI == null)
+        {
+            Debug.LogError("[ShowEventPanel] 'displayText' 上沒有 TextMeshProUGUI，請確認掛的是 TMP 文字。");
+            return;
+        }
+
+        cutScenePanelTextUI.text = description;
+        ApplyEventVisuals(cutScenePanel.transform, backgroundOverride, portraitOverride);
+
+        if (rememberAfterText)
+        {
+            pendingAfterEventDescription = afterEventDescription;
+            isShowingAfterEventDescription = false;
+        }
+
+        cutScenePanel.SetActive(true);
+        TryShowPersistentEventDescriptionInStatUI(description);
+    }
+
+    private void ApplyEventVisuals(Transform root, Sprite backgroundSprite, Sprite portraitSprite)
+    {
+        if (root == null) return;
+
+        if (backgroundSprite != null)
+        {
+            Transform bgTf = FindDeepChildByName(root, "BackgroundImage");
+            if (bgTf != null)
+            {
+                Image bgImg = bgTf.GetComponent<Image>();
+                if (bgImg != null)
+                {
+                    bgImg.sprite = backgroundSprite;
+                    bgImg.enabled = true;
+                }
+            }
+        }
+
+        if (portraitSprite != null)
+        {
+            Transform portraitTf = FindDeepChildByName(root, "CharacterPortrait");
+            if (portraitTf != null)
+            {
+                Image portraitImg = portraitTf.GetComponent<Image>();
+                if (portraitImg != null)
+                {
+                    portraitImg.sprite = portraitSprite;
+                    portraitImg.enabled = true;
+                }
+            }
+        }
+    }
+
     private GameObject GetSafePanelPrefab(GameObject specificPrefab)
     {
         if (specificPrefab != null) return specificPrefab;
@@ -961,6 +1191,12 @@ isShowingAfterEventDescription = false;
             Destroy(cutScenePanel);
             cutScenePanel = null;
             cutScenePanelTextUI = null;
+        }
+
+        for (int i = 0; i < chainChoiceButtons.Length; i++)
+        {
+            chainChoiceButtons[i] = null;
+            chainChoiceButtonTexts[i] = null;
         }
     }
 
@@ -983,6 +1219,21 @@ isShowingAfterEventDescription = false;
             "ClearPersistentEventDescription",
             SendMessageOptions.DontRequireReceiver
         );
+    }
+
+    private Transform FindDeepChildByName(Transform parent, string childName)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == childName)
+                return child;
+
+            Transform found = FindDeepChildByName(child, childName);
+            if (found != null)
+                return found;
+        }
+
+        return null;
     }
 
     // =========================================================
@@ -1016,9 +1267,17 @@ isShowingAfterEventDescription = false;
     {
         return triggeredEvents;
     }
+
     public void OnEventConfirmButtonPressed()
     {
-        // 如果還有後續文字，而且現在還沒顯示過，就先顯示後續文字
+        // 連鎖事件若還在選選項，不允許直接按確認跳過
+        if (currentEventUsesChain && AnyVisibleChainChoiceButtons())
+        {
+            Debug.Log("[ChainEvent] 這個節點還有選項，請先按選項。");
+            return;
+        }
+
+        // 有後續文字就先顯示後續文字
         if (!isShowingAfterEventDescription && !string.IsNullOrWhiteSpace(pendingAfterEventDescription))
         {
             string nextText = pendingAfterEventDescription;
@@ -1029,38 +1288,26 @@ isShowingAfterEventDescription = false;
             ClearPersistentEventDescriptionInStatUI();
 
             GameObject panelToUse = lastUsedEventPanelPrefab != null ? lastUsedEventPanelPrefab : GetSafePanelPrefab(null);
-            ShowEventPanel(nextText, panelToUse, "");
+            ShowEventPanel(nextText, panelToUse, "", null, null, false);
+
+            HideAllChainChoiceButtons();
 
             Debug.Log("顯示事件結束後的額外文字。");
             return;
-        }
-
-        switch (currentEventName)
-        {
-            case "ReceiveMessage":
-                break;
-
-            case "BuyMilk":
-                break;
-
-            case "ReceiveCatVideo":
-                break;
         }
 
         ClearCurrentEventPanel();
         ClearPersistentEventDescriptionInStatUI();
         HideAllChainChoiceButtons();
 
-        currentChainDefinition = null;
-        currentChainNode = null;
-        currentChainRootEventName = "";
-        currentEventUsesChain = false;
-
-        isEventActive = false;
-        currentEventName = "";
         pendingAfterEventDescription = "";
         isShowingAfterEventDescription = false;
         lastUsedEventPanelPrefab = null;
+
+        ResetCurrentChainContext();
+
+        isEventActive = false;
+        currentEventName = "";
 
         if (newGameManager.Instance != null)
         {
@@ -1068,6 +1315,5 @@ isShowingAfterEventDescription = false;
         }
 
         Debug.Log("事件已結束。");
-
     }
 }
